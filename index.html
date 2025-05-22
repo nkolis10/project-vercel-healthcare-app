@@ -1,0 +1,3126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>MediFlow Nexus - Advanced Healthcare CRM</title>
+    <!-- Creative Favicon Link -->
+    <link rel="icon" type="image/png" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚕️</text></svg>">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        /* --- Global Reset & Base --- */
+        :root {
+            /* Light Mode Colors */
+            --primary-color: #0a7f9c; /* Deep Teal */
+            --secondary-color: #14a3c7; /* Lighter Teal */
+            --accent-color: #ff6b6b; /* Coral Red Accent */
+            --background-light: #f0f8ff; /* Alice Blue */
+            --background-card: #ffffff;
+            --background-header: #ffffff;
+            --background-table-header: #edf2f7; /* Gray 100 */
+            --background-table-row-hover: #f7fafc; /* Gray 50 */
+            --background-modal: #ffffff;
+            --background-sidebar-start: #1a202c; /* Dark Slate */
+            --background-sidebar-end: #2c3e50;
+            --text-light: #f7fafc;
+            --text-dark: #2d3748;
+            --text-muted: #718096; /* Gray */
+            --text-sidebar: #ecf0f1; /* Clouds */
+            --text-sidebar-muted: #bdc3c7; /* Silver */
+            --border-color: #e2e8f0;
+            --shadow-color-light: rgba(0, 0, 0, 0.07);
+            --shadow-color-medium: rgba(0, 0, 0, 0.1);
+            --shadow-color-dark: rgba(0, 0, 0, 0.15);
+
+            /* Status & Role Colors */
+            --success-color: #48bb78;
+            --warning-color: #ecc94b;
+            --danger-color: #f56565;
+            --admin-accent: #9b59b6; /* Amethyst Purple */
+            --doctor-accent: #3498db; /* Peter River Blue */
+            --staff-accent: #2ecc71; /* Emerald Green */
+
+            /* Fonts */
+            --font-primary: 'Poppins', sans-serif;
+            --font-display: 'Orbitron', sans-serif; /* Techy font for headers */
+
+            /* Transitions */
+            --transition-speed: 0.3s;
+        }
+
+        body.dark-mode {
+             /* Dark Mode Colors */
+            --primary-color: #14a3c7; /* Lighter Teal for dark mode */
+            --secondary-color: #0a7f9c; /* Darker Teal */
+            --accent-color: #ff7f7f; /* Lighter Coral Red */
+            --background-light: #1a202c; /* Dark Slate */
+            --background-card: #2d3748; /* Slightly lighter dark */
+            --background-header: #2d3748;
+            --background-table-header: #4a5568; /* Gray 700 */
+            --background-table-row-hover: #4a5568; /* Gray 700 */
+            --background-modal: #2d3748;
+            /* Sidebar stays dark */
+            /* --background-sidebar-start: #1a202c; */
+            /* --background-sidebar-end: #2c3e50; */
+            --text-light: #1a202c; /* Dark text for light elements if needed */
+            --text-dark: #f7fafc; /* Light text for dark background */
+            --text-muted: #a0aec0; /* Gray 500 */
+            --text-sidebar: #ecf0f1; /* Unchanged */
+            --text-sidebar-muted: #bdc3c7; /* Unchanged */
+            --border-color: #4a5568; /* Gray 700 */
+            --shadow-color-light: rgba(255, 255, 255, 0.05);
+            --shadow-color-medium: rgba(255, 255, 255, 0.08);
+            --shadow-color-dark: rgba(255, 255, 255, 0.1);
+
+            /* Status & Role Colors might need slight adjustments for contrast if needed */
+            --success-color: #68d391; /* Lighter Green */
+            --warning-color: #f6e05e; /* Lighter Yellow */
+            --danger-color: #fc8181; /* Lighter Red */
+            /* Role accents generally work okay on dark bg */
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease, border-color var(--transition-speed) ease; /* Add transition */
+        }
+
+        html {
+            font-size: 16px;
+        }
+
+        body {
+            font-family: var(--font-primary);
+            background-color: var(--background-light);
+            color: var(--text-dark);
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden; /* Prevent horizontal scroll */
+        }
+
+        #login-wrapper { /* Wrapper for centering login */
+             display: flex;
+             justify-content: center;
+             align-items: center;
+             min-height: 100vh;
+             width: 100%;
+             position: fixed; /* Use fixed to ensure it covers everything */
+             top: 0;
+             left: 0;
+             /* Gradient updated slightly for better theme blending */
+             background: linear-gradient(-45deg, var(--background-light), var(--secondary-color), var(--primary-color));
+             background-size: 400% 400%;
+             animation: gradientBG 15s ease infinite;
+             z-index: 2000; /* Ensure login is on top */
+             opacity: 1;
+             visibility: visible; /* Control visibility for pointer-events */
+             transition: opacity 0.5s ease-out, visibility 0s linear 0.5s, background var(--transition-speed) ease; /* Add bg transition */
+             padding: 1rem; /* Padding for small screens */
+        }
+         #login-wrapper.hidden {
+             opacity: 0;
+             visibility: hidden; /* Hide completely after fade */
+             pointer-events: none;
+             transition: opacity 0.5s ease-out, visibility 0s linear 0.5s, background var(--transition-speed) ease;
+         }
+
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* --- Login Screen Styling --- */
+        #login-screen {
+            /* background-color adjusted dynamically via CSS vars potentially, but using fixed light for contrast */
+            background-color: rgba(255, 255, 255, 0.95); /* Keep login box light for contrast */
+            padding: 3rem 2.5rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px var(--shadow-color-dark); /* Use var */
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+            transition: transform 0.3s ease, background-color var(--transition-speed) ease;
+            color: #2d3748; /* Ensure dark text on light login box */
+        }
+
+        .login-logo {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            color: #0a7f9c; /* Fixed color for logo on light bg */
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .login-logo i {
+            margin-right: 10px;
+            color: #14a3c7; /* Fixed color */
+        }
+
+        .login-title {
+            font-size: 1.2rem;
+            color: #2d3748; /* Fixed color */
+            margin-bottom: 1.5rem;
+        }
+
+        .login-form .form-group {
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+
+        .login-form label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #0a7f9c; /* Fixed color */
+        }
+
+        .login-form input,
+        .login-form select {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 1px solid #e2e8f0; /* Fixed border */
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            background-color: #fff; /* Ensure white bg */
+            color: #2d3748; /* Ensure dark text */
+        }
+
+        .login-form input:focus,
+        .login-form select:focus {
+            outline: none;
+            border-color: #14a3c7; /* Fixed focus color */
+            box-shadow: 0 0 0 3px rgba(20, 163, 199, 0.2);
+        }
+
+        .login-button {
+            background: linear-gradient(90deg, #0a7f9c, #14a3c7); /* Fixed gradient */
+            color: #f7fafc; /* Fixed text color */
+            border: none;
+            padding: 0.9rem 1.5rem;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
+            width: 100%;
+            margin-top: 1rem;
+            box-shadow: 0 4px 15px rgba(10, 127, 156, 0.3);
+        }
+
+        .login-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(10, 127, 156, 0.4);
+        }
+        .login-button:disabled {
+             background: linear-gradient(90deg, #a0aec0, #cbd5e0); /* Gray gradient */
+             box-shadow: none;
+             cursor: not-allowed;
+        }
+
+        .login-error {
+            color: var(--danger-color);
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            height: 1.2em; /* Reserve space */
+            font-weight: 600;
+        }
+        #login-screen p > i {
+             color: var(--text-muted); /* Use muted color for HIPAA icon */
+        }
+
+        /* --- Main App Styling --- */
+        #main-app {
+            display: none; /* Hidden initially */
+            width: 100%;
+            height: 100vh;
+            max-width: 100vw;
+            max-height: 100vh;
+            overflow: hidden;
+            background-color: var(--background-light);
+            opacity: 0; /* Start hidden */
+            visibility: hidden;
+            transition: opacity 0.5s ease-in, visibility 0s linear 0.5s, background-color var(--transition-speed) ease; /* Add bg transition */
+        }
+
+        #main-app.visible {
+            display: flex; /* Make it visible and flex */
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.5s ease-in, visibility 0s linear 0s, background-color var(--transition-speed) ease;
+        }
+
+        /* --- Sidebar --- */
+        #app-sidebar {
+            width: 260px;
+            background: linear-gradient(180deg, var(--background-sidebar-start), var(--background-sidebar-end)); /* Stays dark */
+            color: var(--text-sidebar);
+            padding: 1.5rem 0;
+            display: flex;
+            flex-direction: column;
+            transition: width 0.3s ease, left 0.3s ease; /* Added left transition for mobile */
+            box-shadow: 5px 0 15px var(--shadow-color-medium); /* Use var */
+            flex-shrink: 0;
+        }
+
+        .sidebar-header {
+            padding: 0 1.5rem 1.5rem 1.5rem;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 1.5rem;
+        }
+
+        .sidebar-logo {
+            font-family: var(--font-display);
+            font-size: 1.6rem;
+            color: var(--text-light); /* Use light text var */
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .sidebar-logo i {
+            margin-right: 10px;
+            color: var(--secondary-color); /* Use var */
+        }
+
+        .sidebar-tagline {
+            font-size: 0.8rem;
+            color: var(--text-sidebar-muted); /* Use var */
+        }
+
+        .sidebar-nav {
+            flex-grow: 1;
+            overflow-y: auto; /* For many menu items */
+        }
+
+        .sidebar-nav ul {
+            list-style: none;
+        }
+
+        .sidebar-nav li a {
+            display: flex;
+            align-items: center;
+            padding: 0.9rem 1.5rem;
+            color: var(--text-sidebar); /* Use var */
+            text-decoration: none;
+            font-size: 1rem;
+            transition: background-color 0.3s ease, color 0.3s ease, border-left 0.3s ease;
+            border-left: 4px solid transparent; /* Indicator for active */
+        }
+        /* Ensure span exists for styling/hiding */
+        .sidebar-nav li a span {
+            display: inline-block; /* Or block */
+        }
+
+        .sidebar-nav li a i {
+            margin-right: 12px;
+            width: 20px; /* Ensure alignment */
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-nav li a:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--text-light); /* Use var */
+            border-left-color: var(--secondary-color); /* Use var */
+        }
+         .sidebar-nav li a:hover i {
+            transform: scale(1.1);
+         }
+
+        .sidebar-nav li a.active {
+            background-color: rgba(255, 255, 255, 0.15);
+            font-weight: 600;
+            color: var(--text-light); /* Use var */
+            border-left-color: var(--accent-color); /* Active indicator uses accent */
+        }
+        .sidebar-nav li a.active i {
+            color: var(--accent-color); /* Use var */
+        }
+
+
+        .sidebar-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.8rem;
+            color: var(--text-sidebar-muted); /* Use var */
+            text-align: center;
+        }
+
+        /* --- App Container --- */
+        #app-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; /* Prevent container scroll */
+            background-color: var(--background-light); /* Ensure bg color */
+        }
+
+        /* --- App Header --- */
+        #app-header {
+            background-color: var(--background-header); /* Use var */
+            padding: 0.8rem 2rem;
+            display: flex;
+            /* justify-content: space-between; -- Removed for new layout */
+            align-items: center;
+            box-shadow: 0 2px 10px var(--shadow-color-light); /* Use var */
+            height: 70px; /* Fixed height */
+            flex-shrink: 0; /* Prevent header shrinking */
+            position: relative; /* Needed for sidebar toggle absolute positioning */
+            transition: background-color var(--transition-speed) ease; /* Add transition */
+            gap: 1rem; /* Add gap between elements */
+        }
+
+        .header-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-color); /* Use var */
+            display: flex;
+            align-items: center;
+            margin-right: 1rem; /* Add some space after title */
+        }
+         .header-title i {
+             margin-right: 10px;
+         }
+
+        /* Theme toggle moved - styles below */
+
+        .header-user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem; /* Add gap for theme toggle */
+            margin-left: auto; /* Push user info to the right */
+        }
+
+        .user-details {
+            text-align: right;
+            /* margin-right: 1rem; Removed, using gap */
+        }
+
+        .user-name {
+            font-weight: 600;
+            display: block;
+            font-size: 0.95rem;
+            color: var(--text-dark); /* Use var */
+        }
+
+        .user-role {
+            font-size: 0.8rem;
+            color: #fff; /* Ensure text is white on colored bg */
+            padding: 0.1rem 0.5rem;
+            border-radius: 4px;
+            font-weight: 600;
+            display: inline-block; /* Make it behave like a tag */
+        }
+        .user-role.admin { background-color: var(--admin-accent); }
+        .user-role.doctor { background-color: var(--doctor-accent); }
+        .user-role.staff { background-color: var(--staff-accent); }
+
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--secondary-color); /* Placeholder color */
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 600;
+            /* margin-right: 1rem; Removed, using gap */
+        }
+
+        /* --- Theme Toggle Switch --- */
+        .theme-switch-wrapper {
+            display: flex;
+            align-items: center;
+            /* margin-left: 1rem; /* Add space before user info */
+            /* margin-right: 1rem; /* Optional space before user info */
+            /* Removed specific margins, rely on header gap */
+        }
+        .theme-switch {
+            display: inline-block;
+            height: 24px; /* Slightly smaller */
+            position: relative;
+            width: 50px; /* Slightly smaller */
+        }
+        .theme-switch input {
+            display: none;
+        }
+        .theme-slider {
+            background-color: #ccc; /* Default track color */
+            bottom: 0;
+            cursor: pointer;
+            left: 0;
+            position: absolute;
+            right: 0;
+            top: 0;
+            transition: .4s;
+            border-radius: 24px; /* Make it pill shaped */
+        }
+        .theme-slider:before {
+            background-color: #fff;
+            bottom: 3px; /* Position knob inside track */
+            content: "";
+            height: 18px; /* Knob size */
+            left: 3px; /* Position knob inside track */
+            position: absolute;
+            transition: .4s;
+            width: 18px; /* Knob size */
+            border-radius: 50%;
+            display: flex; /* For centering icon */
+            align-items: center;
+            justify-content: center;
+            font-family: "Font Awesome 6 Free"; /* Specify Font Awesome */
+            font-weight: 900; /* Use solid icons */
+            font-size: 10px; /* Icon size */
+            color: #ccc; /* Icon color initially */
+        }
+         /* Sun icon for light mode (default state) */
+        .theme-slider:before {
+            content: "\f185"; /* Font Awesome sun icon */
+            color: #f1c40f; /* Yellow */
+        }
+
+        .theme-switch input:checked + .theme-slider {
+            background-color: var(--primary-color); /* Track color when dark */
+        }
+
+        .theme-switch input:checked + .theme-slider:before {
+            transform: translateX(26px); /* Move knob to the right */
+            content: "\f186"; /* Font Awesome moon icon */
+            color: #f1c40f; /* Keep yellow, or change */
+            background-color: #fff; /* Keep knob white */
+        }
+
+        .logout-button {
+            background: none;
+            border: none;
+            color: var(--danger-color);
+            font-size: 1.3rem;
+            cursor: pointer;
+            transition: color 0.3s ease, transform 0.2s ease;
+        }
+        .logout-button:hover {
+            color: #c53030; /* Darker red */
+            transform: scale(1.1);
+        }
+
+
+        /* --- App Content Area --- */
+        #app-content {
+            flex-grow: 1;
+            padding: 2rem;
+            overflow-y: auto; /* Enable scrolling for content */
+            background-color: var(--background-light);
+        }
+
+        .content-section {
+            display: none; /* Hidden by default */
+            animation: fadeIn 0.5s ease;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- General Content Styling --- */
+        h2 {
+            font-family: var(--font-display);
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            font-size: 1.8rem;
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+        }
+        h3 {
+            color: var(--text-dark); /* Ensure headings adapt */
+        }
+        h4 {
+            color: var(--primary-color); /* Use primary for H4 */
+             margin-top: 1rem; /* Added from before */
+        }
+
+
+        .card {
+            background-color: var(--background-card); /* Use var */
+            border-radius: 10px;
+            box-shadow: 0 4px 15px var(--shadow-color-light); /* Use var */
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, background-color var(--transition-speed) ease; /* Add bg transition */
+            border: 1px solid var(--border-color); /* Add subtle border */
+        }
+        .card:hover:not(.non-interactive) { /* Don't lift non-interactive cards */
+            transform: translateY(-3px);
+            box-shadow: 0 7px 20px var(--shadow-color-medium); /* Use var */
+        }
+        .card.clickable-widget {
+            cursor: pointer; /* Indicate clickability */
+        }
+
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .widget {
+            display: flex;
+            align-items: center;
+            padding: 1.5rem;
+        }
+
+        .widget-icon {
+            font-size: 2.5rem;
+            margin-right: 1.5rem;
+            padding: 0.8rem;
+            border-radius: 50%;
+            color: #fff;
+            flex-shrink: 0;
+        }
+        .widget-icon.patients { background-color: var(--doctor-accent); }
+        .widget-icon.appointments { background-color: var(--staff-accent); }
+        .widget-icon.messages { background-color: var(--warning-color); color: var(--text-dark); } /* Explicit text color for warning */
+        .widget-icon.revenue { background-color: var(--admin-accent); }
+
+
+        .widget-info h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0 0 0.2rem 0;
+            line-height: 1.2; /* Prevent overlap */
+            color: var(--text-dark); /* Use var */
+        }
+
+        .widget-info p {
+            font-size: 0.9rem;
+            color: var(--text-muted); /* Use var */
+            margin: 0;
+        }
+
+        /* Chart Container Fix */
+        #dashboard-section .card canvas {
+             /* FIX: Set explicit height and max-height */
+             height: 300px !important; /* Use important if necessary to override */
+             max-height: 300px !important;
+             width: 100%; /* Ensure width responsiveness */
+        }
+
+
+        /* Table Styling */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .data-table th, .data-table td {
+            padding: 0.8rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: middle; /* Better alignment */
+            color: var(--text-dark); /* Use var */
+        }
+
+        .data-table th {
+            background-color: var(--background-table-header); /* Use var */
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--primary-color); /* Keep primary color for header text */
+        }
+
+        .data-table tbody tr:hover {
+            background-color: var(--background-table-row-hover); /* Use var */
+        }
+
+        .data-table .action-buttons { white-space: nowrap; } /* Prevent wrapping */
+        .data-table .action-buttons button, .action-buttons button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1rem;
+            margin-right: 0.5rem;
+            padding: 0.3rem;
+            transition: color 0.2s ease, transform 0.2s ease;
+        }
+        .data-table .action-buttons button:last-child { margin-right: 0; }
+        .data-table .action-buttons button:hover:not(:disabled),
+        .action-buttons button:hover:not(:disabled) { /* Add :not(:disabled) */
+             transform: scale(1.1);
+        }
+        .data-table .action-buttons button:disabled,
+        .action-buttons button:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+            transform: none;
+            color: var(--text-muted) !important; /* Use var, override colors */
+        }
+
+
+        .btn-view { color: var(--doctor-accent); }
+        .btn-edit { color: var(--staff-accent); }
+        .btn-delete { color: var(--danger-color); }
+        .btn-message { color: var(--warning-color); }
+        .btn-print { color: var(--primary-color); }
+        .btn-share { color: var(--admin-accent); }
+        .btn-cancel { color: var(--danger-color); } /* For appointments */
+        .btn-activate { color: var(--success-color); } /* For users */
+
+
+        /* Button Styling */
+        .btn {
+            padding: 0.7rem 1.2rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease, color var(--transition-speed) ease; /* Add color transition */
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem; /* Space between icon and text */
+            vertical-align: middle; /* Align buttons in a row */
+        }
+        .btn i {
+            font-size: 1em; /* Match icon size to text */
+        }
+        .btn:disabled {
+            background-color: #cbd5e0 !important; /* Gray 300 - ensure override */
+            color: #a0aec0 !important; /* Gray 500 */
+            cursor: not-allowed !important;
+            box-shadow: none !important;
+            transform: none !important;
+        }
+        .btn-sm { /* Smaller button variant for tab printing */
+            padding: 0.3rem 0.7rem;
+            font-size: 0.85rem;
+        }
+
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+            box-shadow: 0 2px 5px var(--shadow-color-light); /* Use var */
+        }
+        .btn-primary:not(:disabled):hover {
+            background-color: var(--secondary-color); /* Use secondary for hover */
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px var(--shadow-color-medium); /* Use var */
+        }
+
+        .btn-secondary {
+            background-color: var(--background-table-header); /* Use table header bg */
+            color: var(--text-dark); /* Use var */
+            border: 1px solid var(--border-color); /* Add border */
+        }
+        .btn-secondary:not(:disabled):hover {
+            background-color: var(--background-table-row-hover); /* Use var */
+            border-color: var(--secondary-color); /* Highlight border */
+        }
+
+
+        /* Forms within app */
+        .app-form .form-group {
+            margin-bottom: 1rem;
+        }
+        .app-form label {
+            display: block;
+            margin-bottom: 0.4rem;
+            font-weight: 600;
+            color: var(--text-dark); /* Use var */
+        }
+        .app-form input,
+        .app-form select,
+        .app-form textarea {
+             width: 100%;
+            padding: 0.7rem 0.9rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 1rem;
+            background-color: var(--background-card); /* Use card bg */
+            color: var(--text-dark); /* Use text color */
+        }
+         .app-form textarea {
+            min-height: 100px;
+            resize: vertical;
+         }
+
+        .app-form input:focus,
+        .app-form select:focus,
+        .app-form textarea:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 2px color-mix(in srgb, var(--secondary-color) 20%, transparent); /* Use var for focus shadow */
+        }
+
+        /* Specific Section Styling */
+        #patient-details-section .patient-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap; /* Allow wrapping on small screens */
+            gap: 1rem;
+        }
+        #patient-details-section .patient-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: var(--doctor-accent);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin-right: 1.5rem;
+            flex-shrink: 0;
+        }
+        #patient-details-section .patient-info h3 {
+            margin: 0 0 0.2rem 0;
+            font-size: 1.6rem;
+            color: var(--text-dark); /* Use var */
+        }
+         #patient-details-section .patient-info p {
+            color: var(--text-muted); /* Use var */
+            margin-bottom: 0.2rem;
+         }
+          #patient-details-section .patient-info p strong {
+            color: var(--text-dark); /* Ensure strong text is readable */
+          }
+
+
+        .tab-navigation {
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex; /* Use flex for wrapping */
+            flex-wrap: wrap; /* Allow tabs to wrap */
+            gap: 0.5rem; /* Add gap between wrapped tabs */
+        }
+        .tab-navigation button {
+            background: none;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-muted); /* Use var */
+            border-bottom: 3px solid transparent;
+            transition: color 0.3s ease, border-color 0.3s ease;
+            margin-bottom: -1px; /* Align with bottom border */
+            white-space: nowrap; /* Prevent text wrapping */
+        }
+        .tab-navigation button.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+
+        .tab-content { display: none; position: relative; /* For print button */}
+        .tab-content.active { display: block; animation: fadeIn 0.4s ease;}
+        .tab-content .btn-print-tab { /* Position print button inside tab */
+            position: absolute;
+            top: -10px; /* Adjust position */
+            right: 0;
+            z-index: 10; /* Ensure it's clickable */
+        }
+        /* .tab-content h4 { margin-top: 1rem; } Moved to global H4 style */
+
+
+        /* Messaging Interface */
+        .message-list { list-style: none; max-height: 400px; overflow-y: auto; padding-right: 10px; } /* Scrollable */
+        .message-item {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .message-item:hover { background-color: var(--background-table-row-hover); } /* Use var */
+        .message-item.unread { font-weight: bold; border-left: 4px solid var(--warning-color);}
+        .message-sender { color: var(--primary-color); font-weight: 600; }
+        .message-subject { display: block; margin: 0.2rem 0; color: var(--text-dark);}
+        .message-date { font-size: 0.8rem; color: var(--text-muted); }
+        #message-detail-view { margin-top: 2rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem; display: none; }
+        #message-detail-view h4 { font-family: var(--font-primary); font-size: 1.3rem; color: var(--primary-color); } /* Style detail view title */
+        #message-detail-view p { color: var(--text-dark); }
+        #message-detail-view strong { color: var(--primary-color); }
+
+
+        /* General Modal Styling */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            justify-content: center;
+            align-items: flex-start; /* Align top for scroll */
+            overflow-y: auto; /* Scroll if content is too long */
+            padding: 50px 15px; /* Space from top/bottom and side padding */
+        }
+        .modal.visible { display: flex; }
+        .modal-content {
+            background-color: var(--background-modal); /* Use var */
+            padding: 2rem;
+            border-radius: 10px;
+            max-width: 600px; /* Increased max-width */
+            width: 100%; /* Use full width up to max */
+            box-shadow: 0 10px 30px var(--shadow-color-dark); /* Use var */
+            position: relative; /* Needed for close button positioning */
+            margin: auto; /* Helps centering when content is short */
+            border: 1px solid var(--border-color); /* Add border for dark mode */
+            color: var(--text-dark); /* Ensure text color adapts */
+        }
+        .modal-content h3 {
+             margin-bottom: 1.5rem;
+             color: var(--primary-color);
+             text-align: center;
+             font-family: var(--font-display);
+         }
+         .modal-close-button {
+             position: absolute;
+             top: 15px;
+             right: 15px;
+             background: none;
+             border: none;
+             font-size: 1.5rem;
+             color: var(--text-muted); /* Use var */
+             cursor: pointer;
+             transition: color 0.2s ease;
+             z-index: 1010; /* Above content */
+         }
+         .modal-close-button:hover {
+             color: var(--text-dark); /* Use var */
+         }
+        .modal-buttons { margin-top: 1.5rem; text-align: right; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.5rem; }
+
+
+        /* Shareable Link Modal (Inherits general modal styles) */
+        #share-modal .modal-content h3 { color: var(--admin-accent); } /* Specific title color */
+        .modal-content .hipaa-warning {
+            background-color: color-mix(in srgb, var(--warning-color) 20%, var(--background-modal)); /* Mix warning with bg */
+            color: color-mix(in srgb, var(--warning-color) 80%, var(--text-dark)); /* Darker warning text */
+            padding: 0.8rem;
+            border-radius: 6px;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+            border: 1px solid var(--warning-color); /* Use var */
+            text-align: left;
+        }
+        .modal-content .hipaa-warning i { margin-right: 0.5rem; }
+        .modal-content .hipaa-warning strong { color: inherit; } /* Inherit warning color */
+        .share-link-display {
+            background-color: var(--background-light); /* Use var */
+            padding: 0.8rem;
+            border-radius: 6px;
+            word-wrap: break-word;
+            margin-bottom: 1rem;
+            font-family: monospace;
+            text-align: left;
+            border: 1px solid var(--border-color);
+            color: var(--text-dark); /* Use var */
+        }
+
+
+        /* Print Styles */
+        @media print {
+            :root { /* Override colors for print */
+                --primary-color: #000000;
+                --secondary-color: #333333;
+                --accent-color: #555555;
+                --background-light: #ffffff;
+                --background-card: #ffffff;
+                --text-light: #ffffff;
+                --text-dark: #000000;
+                --text-muted: #444444;
+                --border-color: #cccccc;
+                --success-color: #000000;
+                --warning-color: #000000;
+                --danger-color: #000000;
+                /* Role colors to black */
+                --admin-accent: #000000;
+                --doctor-accent: #000000;
+                --staff-accent: #000000;
+            }
+             /* Add dark mode reset for print */
+             body.dark-mode {
+                 --background-light: #ffffff;
+                 --background-card: #ffffff;
+                 --text-dark: #000000;
+                 --text-muted: #444444;
+                 --border-color: #cccccc;
+             }
+
+
+            body {
+                background: none !important;
+                display: block !important;
+                min-height: auto;
+                color: #000 !important; /* Ensure text is black for printing */
+                -webkit-print-color-adjust: exact !important; /* Ensure background colors print if needed */
+                 print-color-adjust: exact !important;
+            }
+            #login-wrapper, /* Hide login screen wrapper */
+            #app-sidebar, #app-header, .no-print,
+            .action-buttons button:not(.btn-print-tab), /* Hide most action buttons except tab print */
+            .modal, .tab-navigation /* Hide all modals and tab navigation */ {
+                display: none !important;
+            }
+             #app-header .theme-switch-wrapper { display: none !important; } /* Hide theme toggle */
+
+            #main-app, #app-container, #app-content {
+                width: 100% !important;
+                height: auto !important;
+                overflow: visible !important;
+                display: block !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                box-shadow: none !important;
+                opacity: 1 !important; /* Ensure visible */
+                visibility: visible !important;
+                background-color: transparent !important;
+            }
+             #patient-details-section { /* Ensure patient details section takes full width */
+                 padding: 0 !important;
+                 margin: 0 !important;
+             }
+
+            .content-section {
+                display: none !important; /* Hide all sections by default */
+                animation: none !important;
+            }
+             /* Show only the section that was active before print */
+            .content-section.active {
+                display: block !important;
+             }
+
+            .card {
+                box-shadow: none !important;
+                border: 1px solid #ccc !important;
+                margin: 0 0 1rem 0 !important; /* Only bottom margin */
+                padding: 1rem !important;
+                page-break-inside: avoid;
+                border-radius: 0 !important;
+                background-color: #fff !important;
+            }
+             #patient-details-section > #printable-patient-record > .card { /* Specific card within patient details */
+                 border: none !important; /* Remove border from the main card wrapper */
+                 padding: 0 !important;
+                 margin: 0 !important;
+             }
+
+            .grid-container {
+                grid-template-columns: 1fr; /* Stack widgets */
+                gap: 1rem;
+            }
+            .widget { flex-direction: column; align-items: flex-start; text-align: left;} /* Stack widget content */
+            .widget-icon { margin-bottom: 0.5rem; background-color: #ccc !important; color: #000 !important;}
+
+             /* Patient Header Printing */
+             #patient-details-section .patient-header {
+                 display: flex !important; /* Ensure header shows */
+                 border-bottom: 1px solid #ccc; /* Add separator */
+                 padding-bottom: 1rem;
+                 margin-bottom: 1rem;
+                 flex-wrap: nowrap !important; /* Prevent wrapping in print */
+             }
+             #patient-details-section .patient-avatar { background-color: #ccc !important; color: #000 !important; }
+             #patient-details-section h3, #patient-details-section p, #patient-details-section strong {
+                 color: #000 !important;
+             }
+
+             /* Tab Content Printing */
+            .tab-content {
+                 display: none !important; /* Hide all tab content by default */
+                 border: none !important; /* Remove any borders */
+                 padding: 0 !important; /* Remove padding */
+                 margin: 0 !important;
+             }
+             .printable-section { /* Class added temporarily by JS for targeted printing */
+                 display: block !important; /* CRITICAL: Show only the targeted tab */
+                 margin-top: 1rem; /* Space before printed tab content */
+             }
+             .printable-section h4 { /* Style tab titles for print */
+                 font-size: 1.2rem;
+                 margin-bottom: 0.5rem;
+                 border-bottom: 1px solid #eee;
+                 padding-bottom: 0.3rem;
+                 font-family: var(--font-primary); /* Ensure consistent font */
+                 color: #000 !important;
+             }
+             .printable-section p, .printable-section li { color: #000 !important; }
+             .printable-section ul { padding-left: 20px; list-style: disc; } /* Indent lists */
+             .printable-section .data-table { margin-top: 0.5rem; }
+
+
+            h2, h3, h4 { /* Adjust section titles for printing */
+                 border-bottom: 1px solid #666;
+                 color: #000 !important;
+                 font-size: 1.5rem;
+                 margin-top: 1rem; /* Add space before title */
+                 font-family: var(--font-primary); /* Ensure consistent font */
+            }
+            h3, h4 { border-bottom-width: 0; } /* Don't need underlines on H3/H4 */
+
+            /* Ensure tables print well */
+             .data-table {
+                 width: 100%;
+                 border: 1px solid #ccc;
+                 page-break-inside: auto; /* Allow breaking within table if needed */
+             }
+             .data-table tr { page-break-inside: avoid; page-break-after: auto; }
+             .data-table th, .data-table td {
+                 border: 1px solid #ccc;
+                 padding: 0.5rem;
+                 font-size: 0.9rem; /* Smaller font for print */
+                 color: #000 !important;
+             }
+             .data-table th { background-color: #eee !important; }
+             .data-table span { color: #000 !important; background: none !important; font-weight: normal !important; } /* Ensure status text is black, remove bg */
+
+             a { text-decoration: none; color: #000 !important;} /* Plain links */
+             .btn { display: none !important; } /* Hide all buttons by default in print */
+             button.btn-print-tab { display: none !important;} /* Hide the print trigger button itself */
+        }
+
+         /* --- Responsive Adjustments --- */
+         @media (max-width: 768px) {
+             #app-sidebar {
+                 position: fixed; /* Fixed position for overlay */
+                 left: -260px; /* Start hidden */
+                 top: 0;
+                 height: 100%;
+                 z-index: 1500; /* Above content, below modals */
+                 /* transition: left 0.3s ease; defined above */
+                 width: 260px; /* Keep width consistent */
+             }
+              #app-sidebar.open {
+                  left: 0; /* Slide in */
+              }
+             /* Sidebar Toggle Button */
+             #sidebar-toggle {
+                 display: inline-block; /* Only show on mobile */
+                 position: absolute;
+                 left: 1rem;
+                 top: 50%;
+                 transform: translateY(-50%);
+                 font-size: 1.5rem;
+                 color: var(--primary-color);
+                 background: none;
+                 border: none;
+                 cursor: pointer;
+                 z-index: 1510; /* Above sidebar */
+                 transition: opacity 0.3s ease; /* Add transition */
+             }
+             /* Adjust header padding when toggle is visible */
+             #app-header .header-title { margin-left: 3rem; margin-right: 0.5rem; } /* Adjust margin */
+
+             /* FIX: Hide toggle button when sidebar is open */
+             #app-header.sidebar-open #sidebar-toggle {
+                 opacity: 0;
+                 pointer-events: none; /* Prevent clicking hidden button */
+             }
+
+             /* Remove hover effect for sidebar on mobile */
+             .sidebar-header .sidebar-tagline,
+             .sidebar-nav li a span,
+             .sidebar-footer { display: block; }
+             .sidebar-nav li a { justify-content: flex-start; }
+             .sidebar-nav li a i { margin-right: 12px; }
+
+
+             #app-header {
+                 padding: 0.8rem 1rem; /* Reduce padding */
+                 gap: 0.5rem; /* Reduce gap on mobile header */
+             }
+             /* .header-title adjustment above */
+             .user-details { display: none; } /* Hide details on small screens */
+
+             /* Adjust user info layout for theme toggle */
+              .header-user-info {
+                  gap: 0.5rem; /* Reduce gap slightly */
+                  margin-left: auto; /* Ensure it stays right */
+              }
+               .user-avatar {
+                   width: 35px;
+                   height: 35px;
+               }
+               .theme-switch-wrapper {
+                   /* margin-left: 0.5rem; /* Adjust spacing */
+                   /* margin-right: 0.5rem; */
+               }
+               .logout-button { margin-left: 0; } /* Remove auto margin if needed due to gap */
+
+
+             #app-content { padding: 1rem; }
+             h2 { font-size: 1.5rem; }
+             .grid-container { grid-template-columns: 1fr; } /* Stack widgets */
+
+             .data-table th, .data-table td { padding: 0.6rem 0.5rem; font-size: 0.85rem;}
+             .data-table .action-buttons { white-space: normal; } /* Allow buttons to wrap if needed */
+             .data-table .action-buttons button { margin: 2px; }
+
+             .modal-content { padding: 1.5rem; max-width: 95%; } /* Reduce padding, make wider */
+             .modal-buttons { justify-content: center; } /* Center buttons */
+         }
+
+        @media (min-width: 769px) {
+            #sidebar-toggle { display: none; } /* Hide toggle on larger screens */
+        }
+
+         @media (max-width: 480px) {
+              #login-screen { padding: 2rem 1.5rem; }
+              .login-logo { font-size: 1.8rem; }
+              .login-title { font-size: 1.1rem; }
+
+              #app-header { gap: 0.3rem; } /* Further reduce gap */
+              #app-header .header-title i { display: none; } /* Hide icon */
+              #app-header .header-title { font-size: 1.1rem; margin-left: 2.5rem; margin-right: 0.2rem; } /* Adjust size and margin */
+              .user-avatar { display: none; } /* Hide avatar on very small screens */
+              .logout-button { font-size: 1.2rem; }
+              .header-user-info { gap: 0.4rem; } /* Further reduce gap */
+              .theme-switch-wrapper { /* margin-left: 0; margin-right: 0.3rem; */ }
+              .theme-switch { width: 45px; height: 22px; } /* Slightly smaller toggle */
+              .theme-switch .theme-slider:before { height: 16px; width: 16px; bottom: 3px; left: 3px; font-size: 9px; }
+              .theme-switch input:checked + .theme-slider:before { transform: translateX(23px); }
+
+
+              .btn { padding: 0.6rem 1rem; font-size: 0.9rem; }
+              .btn-sm { padding: 0.2rem 0.5rem; font-size: 0.8rem;}
+
+              .tab-navigation button { padding: 0.6rem 1rem; font-size: 0.9rem;}
+         }
+
+    </style>
+</head>
+<body> <!-- JS will add dark-mode class here -->
+
+    <!-- Login Screen Wrapper -->
+    <div id="login-wrapper">
+        <div id="login-screen">
+            <div class="login-logo">
+                <i class="fas fa-heart-pulse"></i> MediFlow Nexus
+            </div>
+            <p class="login-title">Advanced Healthcare CRM Login</p>
+            <form id="login-form" class="login-form">
+                <div class="form-group">
+                    <label for="username"><i class="fas fa-user"></i> Username</label>
+                    <input type="text" id="username" name="username" required placeholder="e.g., dr.smith">
+                </div>
+                <div class="form-group">
+                    <label for="password"><i class="fas fa-lock"></i> Password</label>
+                    <input type="password" id="password" name="password" required placeholder="••••••••">
+                </div>
+                <div class="form-group">
+                    <label for="role"><i class="fas fa-user-tag"></i> Role</label>
+                    <select id="role" name="role" required>
+                        <option value="" disabled selected>Select Your Role</option>
+                        <option value="admin">Administrator</option>
+                        <option value="doctor">Doctor</option>
+                        <option value="staff">Staff</option>
+                    </select>
+                </div>
+                <button type="submit" class="login-button">
+                    <i class="fas fa-sign-in-alt"></i> Secure Login
+                </button>
+                <p id="login-error" class="login-error"></p>
+            </form>
+             <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 1.5rem;">
+                 <i class="fas fa-shield-alt"></i> HIPAA Compliant Environment (Simulated)
+             </p>
+        </div>
+    </div>
+
+
+    <!-- Main Application (Initially Hidden) -->
+    <div id="main-app">
+        <!-- Sidebar -->
+        <aside id="app-sidebar">
+            <div class="sidebar-header">
+                 <div class="sidebar-logo">
+                    <i class="fas fa-heart-pulse"></i> MediFlow
+                </div>
+                <p class="sidebar-tagline">Connecting Care Seamlessly</p>
+            </div>
+            <nav class="sidebar-nav">
+                <!-- Menu items will be populated/filtered by JS -->
+                <!-- This UL is now populated dynamically by initializeUI -->
+                 <ul id="sidebar-menu-list">
+                    <!-- TEMPLATE Items (used by JS, structure must be kept) -->
+                    <!-- These will be added back by JS if permission allows -->
+                    <!-- It's safer to define the full structure here for JS to clone/filter -->
+                     <li style="display: none;" data-template-role="all">
+                        <a href="#dashboard" class="nav-link" data-target="dashboard">
+                            <i class="fas fa-tachometer-alt fa-fw"></i> <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li style="display: none;" data-template-role="all">
+                        <a href="#patients" class="nav-link" data-target="patients">
+                            <i class="fas fa-users fa-fw"></i> <span>Patients</span>
+                        </a>
+                    </li>
+                    <li style="display: none;" data-template-role="all">
+                        <a href="#appointments" class="nav-link" data-target="appointments">
+                            <i class="fas fa-calendar-alt fa-fw"></i> <span>Appointments</span>
+                        </a>
+                    </li>
+                    <li style="display: none;" data-template-role="all">
+                        <a href="#messages" class="nav-link" data-target="messages">
+                            <i class="fas fa-envelope fa-fw"></i> <span>Secure Messages</span>
+                        </a>
+                    </li>
+                    <li style="display: none;" data-template-role="staff_admin">
+                        <a href="#billing" class="nav-link" data-target="billing">
+                            <i class="fas fa-file-invoice-dollar fa-fw"></i> <span>Billing</span>
+                        </a>
+                    </li>
+                    <li style="display: none;" data-template-role="admin">
+                        <a href="#user-management" class="nav-link" data-target="user-management">
+                            <i class="fas fa-users-cog fa-fw"></i> <span>User Management</span>
+                        </a>
+                    </li>
+                    <li style="display: none;" data-template-role="admin">
+                        <a href="#settings" class="nav-link" data-target="settings">
+                            <i class="fas fa-cogs fa-fw"></i> <span>System Settings</span>
+                        </a>
+                    </li>
+                 </ul>
+            </nav>
+             <div class="sidebar-footer">
+                MediFlow Nexus &copy; <span id="current-year"></span> <br> All Rights Reserved.
+            </div>
+        </aside>
+
+        <!-- App Container (Header + Content) -->
+        <div id="app-container">
+            <!-- App Header -->
+            <header id="app-header">
+                 <!-- Sidebar Toggle Button (Visible on Mobile) -->
+                 <button id="sidebar-toggle" class="no-print"><i class="fas fa-bars"></i></button>
+
+                <div class="header-title" id="page-title"><i class="fas fa-tachometer-alt"></i> Dashboard</div>
+
+                 <!-- Theme Toggle Switch -->
+                 <div class="theme-switch-wrapper no-print">
+                    <label class="theme-switch" for="theme-checkbox" title="Toggle Light/Dark Theme">
+                        <input type="checkbox" id="theme-checkbox" />
+                        <div class="theme-slider"></div>
+                    </label>
+                </div>
+
+                <div class="header-user-info">
+                    <div class="user-avatar" id="user-initials"></div>
+                    <div class="user-details">
+                        <span class="user-name" id="user-name-display"></span>
+                        <span class="user-role" id="user-role-display"></span>
+                    </div>
+                    <!-- Theme Toggle Moved -->
+                    <button id="logout-button" class="logout-button no-print" title="Logout">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- App Content Area -->
+            <main id="app-content">
+                <!-- Dashboard Section -->
+                <section id="dashboard-section" class="content-section active">
+                    <h2>Welcome to Your Dashboard</h2>
+                    <div class="grid-container" id="dashboard-widgets">
+                        <!-- Widgets will be loaded here by JS -->
+                    </div>
+                     <div class="card non-interactive" style="margin-top: 2rem;">
+                        <h3>Appointment Overview (Demo Data)</h3>
+                        <!-- FIX: Added height constraints directly via CSS -->
+                        <canvas id="appointmentChart"></canvas>
+                     </div>
+                </section>
+
+                <!-- Patients Section -->
+                <section id="patients-section" class="content-section">
+                    <h2><i class="fas fa-users"></i> Patient Registry</h2>
+                     <div class="card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
+                            <input type="text" id="patient-search" placeholder="Search patients by name, ID, contact" style="flex-grow: 1; min-width: 200px; padding: 0.5rem;">
+                            <button id="add-patient-button" class="btn btn-primary no-print"><i class="fas fa-user-plus"></i> Add New Patient</button>
+                         </div>
+                        <div style="overflow-x: auto;"> <!-- Make table scrollable on small screens -->
+                            <table class="data-table" id="patient-table">
+                                <thead>
+                                    <tr>
+                                        <th>Patient ID</th>
+                                        <th>Name</th>
+                                        <th>Date of Birth</th>
+                                        <th>Contact</th>
+                                        <th>Last Visit</th>
+                                        <th class="no-print">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Patient rows will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Patient Details Section (Example - Loaded dynamically) -->
+                <section id="patient-details-section" class="content-section">
+                    <!-- Dynamically loaded content -->
+                     <button class="btn btn-secondary back-to-list no-print" data-target="patients" style="margin-bottom: 1rem;"><i class="fas fa-arrow-left"></i> Back to Registry</button>
+                    <div id="printable-patient-record">
+                        <!-- Patient details structure loaded here by JS -->
+                    </div>
+                     <div class="action-buttons no-print" style="margin-top: 1.5rem;">
+                         <!-- Share button moved into generated content -->
+                     </div>
+                </section>
+
+                <!-- Appointments Section -->
+                <section id="appointments-section" class="content-section">
+                    <h2><i class="fas fa-calendar-alt"></i> Appointment Schedule</h2>
+                     <div class="card">
+                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
+                            <h3>Upcoming & Past Appointments</h3>
+                            <button id="add-appointment-button" class="btn btn-primary no-print"><i class="fas fa-calendar-plus"></i> Schedule New</button>
+                         </div>
+                          <div style="overflow-x: auto;">
+                             <table class="data-table" id="appointment-table">
+                                 <thead>
+                                    <tr>
+                                        <th>Date & Time</th>
+                                        <th>Patient</th>
+                                        <th>Doctor</th>
+                                        <th>Reason</th>
+                                        <th>Status</th>
+                                        <th class="no-print">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Appointment rows will be loaded here -->
+                                </tbody>
+                             </table>
+                         </div>
+                     </div>
+                </section>
+
+                <!-- Messages Section -->
+                <section id="messages-section" class="content-section">
+                    <h2><i class="fas fa-envelope"></i> Secure Messaging</h2>
+                    <div class="card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
+                             <h3>Inbox</h3>
+                            <button id="compose-message-button" class="btn btn-primary no-print"><i class="fas fa-pencil-alt"></i> Compose New Message</button>
+                        </div>
+                        <ul class="message-list" id="message-list">
+                            <!-- Messages loaded here -->
+                        </ul>
+                         <div id="message-detail-view" style="margin-top: 2rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem; display: none;">
+                             <h4 id="message-detail-subject"></h4>
+                             <p><strong id="message-detail-sender"></strong> <span id="message-detail-date" style="font-size:0.8em; color: var(--text-muted);"></span></p>
+                             <p id="message-detail-body" style="white-space: pre-wrap;"></p> <!-- Preserve formatting -->
+                             <button class="btn btn-secondary no-print" disabled><i class="fas fa-reply"></i> Reply (Not Impl.)</button>
+                         </div>
+                    </div>
+                </section>
+
+                <!-- Billing Section -->
+                <section id="billing-section" class="content-section">
+                    <h2><i class="fas fa-file-invoice-dollar"></i> Billing & Statements</h2>
+                     <div class="card">
+                        <h3>Recent Statements</h3>
+                        <div style="overflow-x: auto;">
+                            <table class="data-table" id="billing-table">
+                                 <thead>
+                                    <tr>
+                                        <th>Invoice ID</th>
+                                        <th>Patient</th>
+                                        <th>Date Issued</th>
+                                        <th>Amount Due</th>
+                                        <th>Status</th>
+                                        <th class="no-print">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Billing rows will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                 <!-- User Management Section (Will be hidden if no permission) -->
+                <section id="user-management-section" class="content-section">
+                    <h2><i class="fas fa-users-cog"></i> User Management</h2>
+                    <div class="card">
+                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
+                            <h3>System Users</h3>
+                            <button id="add-user-button" class="btn btn-primary no-print"><i class="fas fa-user-plus"></i> Add New User</button>
+                         </div>
+                         <div style="overflow-x: auto;">
+                            <table class="data-table" id="user-table">
+                                 <thead>
+                                    <tr>
+                                        <th>Username</th>
+                                        <th>Full Name</th>
+                                        <th>Role</th>
+                                        <th>Last Login</th>
+                                        <th>Status</th>
+                                        <th class="no-print">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- User rows loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                 <!-- Settings Section (Will be hidden if no permission) -->
+                <section id="settings-section" class="content-section">
+                    <h2><i class="fas fa-cogs"></i> System Settings</h2>
+                     <div class="card">
+                         <h3>General Configuration</h3>
+                         <form class="app-form" onsubmit="event.preventDefault(); alert('Settings saved (simulated).')">
+                            <div class="form-group">
+                                <label for="clinic-name">Clinic Name</label>
+                                <input type="text" id="clinic-name" value="MediFlow Nexus Demo Clinic">
+                            </div>
+                             <div class="form-group">
+                                <label for="notification-email">Notification Email</label>
+                                <input type="email" id="notification-email" value="notifications@mediflow-demo.com">
+                            </div>
+                            <button type="submit" class="btn btn-primary no-print">Save Settings</button>
+                         </form>
+                     </div>
+                </section>
+
+
+            </main>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <!-- Shareable Link Modal -->
+    <div id="share-modal" class="modal no-print">
+        <div class="modal-content">
+            <button class="modal-close-button no-print" onclick="hideModal('share-modal')">&times;</button>
+            <h3><i class="fas fa-share-alt"></i> Generate Secure Shareable Link</h3>
+            <p>Create a temporary, secure link to share specific (non-sensitive or authorized) patient information.</p>
+            <div class="hipaa-warning">
+                <i class="fas fa-exclamation-triangle"></i> <strong>HIPAA Warning:</strong> Ensure you are only sharing permissible information according to HIPAA regulations and clinic policy. Sharing unauthorized Protected Health Information (PHI) is a serious violation. This link is for demonstration purposes only and is not truly secure.
+            </div>
+            <p><strong>Simulated Secure Link:</strong></p>
+            <div class="share-link-display" id="share-link-output">Generating link...</div>
+            <div class="modal-buttons">
+                 <button class="btn btn-primary" id="copy-link-button"><i class="fas fa-copy"></i> Copy Link</button>
+                <button class="btn btn-secondary" onclick="hideModal('share-modal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Patient Add/Edit Modal -->
+    <div id="patient-modal" class="modal no-print">
+        <div class="modal-content">
+            <button class="modal-close-button no-print" onclick="hideModal('patient-modal')">&times;</button>
+            <h3 id="patient-modal-title">Add New Patient</h3>
+            <form id="patient-form" class="app-form">
+                <input type="hidden" id="patient-id-edit">
+                <div class="form-group">
+                    <label for="patient-name">Full Name</label>
+                    <input type="text" id="patient-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="patient-dob">Date of Birth</label>
+                    <input type="date" id="patient-dob" required>
+                </div>
+                <div class="form-group">
+                    <label for="patient-contact">Contact Info (Email/Phone)</label>
+                    <input type="text" id="patient-contact" required>
+                </div>
+                <div class="form-group">
+                    <label for="patient-history">Medical History / Notes</label>
+                    <textarea id="patient-history"></textarea>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="btn btn-secondary" onclick="hideModal('patient-modal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Patient</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Appointment Add/Edit Modal -->
+    <div id="appointment-modal" class="modal no-print">
+        <div class="modal-content">
+             <button class="modal-close-button no-print" onclick="hideModal('appointment-modal')">&times;</button>
+            <h3 id="appointment-modal-title">Schedule New Appointment</h3>
+            <form id="appointment-form" class="app-form">
+                <input type="hidden" id="appointment-index-edit">
+                <div class="form-group">
+                    <label for="appointment-patient">Patient</label>
+                    <select id="appointment-patient" required>
+                        <!-- Options populated by JS -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="appointment-datetime">Date & Time</label>
+                    <input type="datetime-local" id="appointment-datetime" required>
+                </div>
+                 <div class="form-group">
+                    <label for="appointment-doctor">Doctor</label>
+                    <select id="appointment-doctor" required>
+                         <option value="Dr. Smith">Dr. Emily Smith</option>
+                         <option value="Dr. House">Dr. Gregory House</option>
+                         <!-- Add more doctors if needed -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="appointment-reason">Reason for Visit</label>
+                    <input type="text" id="appointment-reason" required>
+                </div>
+                 <div class="form-group">
+                    <label for="appointment-status">Status</label>
+                    <select id="appointment-status" required>
+                         <option value="Pending Confirmation">Pending Confirmation</option>
+                         <option value="Confirmed">Confirmed</option>
+                         <option value="Cancelled">Cancelled</option>
+                         <option value="Completed">Completed</option>
+                    </select>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="btn btn-secondary" onclick="hideModal('appointment-modal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Appointment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+     <!-- Message Compose Modal -->
+    <div id="message-modal" class="modal no-print">
+        <div class="modal-content">
+            <button class="modal-close-button no-print" onclick="hideModal('message-modal')">&times;</button>
+            <h3 id="message-modal-title">Compose New Secure Message</h3>
+            <form id="message-form" class="app-form">
+                <div class="form-group">
+                    <label for="message-recipient">Recipient (User/Group)</label>
+                    <input type="text" id="message-recipient" required placeholder="e.g., Billing Dept, Dr. Smith">
+                </div>
+                <div class="form-group">
+                    <label for="message-subject">Subject</label>
+                    <input type="text" id="message-subject" required>
+                </div>
+                <div class="form-group">
+                    <label for="message-body">Message Body</label>
+                    <textarea id="message-body" required></textarea>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="btn btn-secondary" onclick="hideModal('message-modal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Send Message</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- User Add/Edit Modal (Admin Only) -->
+    <div id="user-modal" class="modal no-print">
+        <div class="modal-content">
+            <button class="modal-close-button no-print" onclick="hideModal('user-modal')">&times;</button>
+            <h3 id="user-modal-title">Add New User</h3>
+            <form id="user-form" class="app-form">
+                <input type="hidden" id="user-username-edit">
+                <div class="form-group">
+                    <label for="user-username">Username</label>
+                    <input type="text" id="user-username" required>
+                </div>
+                 <div class="form-group">
+                    <label for="user-fullname">Full Name</label>
+                    <input type="text" id="user-fullname" required>
+                </div>
+                <div class="form-group">
+                    <label for="user-password">Password</label>
+                    <input type="password" id="user-password" placeholder="Enter new password"> <!-- Placeholder updated -->
+                </div>
+                <div class="form-group">
+                    <label for="user-role-select">Role</label>
+                    <select id="user-role-select" required>
+                        <option value="admin">Administrator</option>
+                        <option value="doctor">Doctor</option>
+                        <option value="staff">Staff</option>
+                    </select>
+                </div>
+                 <div class="form-group">
+                    <label for="user-status-select">Status</label>
+                    <select id="user-status-select" required>
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                    </select>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="btn btn-secondary" onclick="hideModal('user-modal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <script>
+        // --- Polyfills & Basic Setup ---
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+
+        // --- Simulated Data (Use let for arrays that will be modified) ---
+        const users = { // Credentials for login
+            'admin': { password: 'password', name: 'Admin User', role: 'admin', initials: 'AU' },
+            'dr.smith': { password: 'password', name: 'Dr. Emily Smith', role: 'doctor', initials: 'ES' },
+            'staff.jones': { password: 'password', name: 'John Jones', role: 'staff', initials: 'JJ' },
+            'dr.house': { password: 'password', name: 'Dr. Gregory House', role: 'doctor', initials: 'GH'}
+        };
+
+        let patients = [
+            { id: 'P001', name: 'Alice Wonderland', dob: '1985-03-15', contact: 'alice@example.com', lastVisit: '2023-10-20', medicalHistory: 'Mild asthma, seasonal allergies.\nFollow up in 6 months.', billing: [{ id: 'INV001', date: '2023-10-20', amount: 150, status: 'Paid' }] },
+            { id: 'P002', name: 'Bob The Builder', dob: '1978-07-22', contact: 'bob@example.com', lastVisit: '2023-09-01', medicalHistory: 'Hypertension (controlled), previous knee surgery (2019).\nPrescribed Lisinopril 10mg daily.', billing: [{ id: 'INV002', date: '2023-09-01', amount: 120, status: 'Pending' }] },
+            { id: 'P003', name: 'Charlie Chaplin', dob: '1992-11-30', contact: 'charlie@example.com', lastVisit: '2023-11-05', medicalHistory: 'No significant history.', billing: [{ id: 'INV003', date: '2023-11-05', amount: 85, status: 'Paid' }] }
+        ];
+         // Add patientId to billing records associated with patients
+         patients.forEach(p => { if (p.billing) { p.billing.forEach(b => b.patientId = p.id); }});
+
+
+        let appointments = [
+            { date: '2023-11-15 10:00', patient: 'Alice Wonderland', patientId: 'P001', doctor: 'Dr. Smith', reason: 'Checkup', status: 'Completed' },
+            { date: '2024-07-16 11:30', patient: 'Bob The Builder', patientId: 'P002', doctor: 'Dr. Smith', reason: 'Follow-up', status: 'Confirmed' }, // Future date
+            { date: '2024-07-17 09:00', patient: 'Charlie Chaplin', patientId: 'P003', doctor: 'Dr. House', reason: 'New Patient Visit', status: 'Pending Confirmation' },// Future date
+        ];
+
+         let messages = [
+            { id: 1, sender: 'Nurse Jackie', recipient: 'Dr. Smith', subject: 'Lab Results Ready - P001', date: '2023-11-10 14:30', body: 'Dr. Smith, the lab results for Alice Wonderland are available in the system.', unread: true },
+            { id: 2, sender: 'Billing Dept', recipient: 'Staff', subject: 'Invoice Reminder - P002', date: '2023-11-09 09:15', body: 'A reminder that invoice INV002 for Bob The Builder is still pending payment.', unread: false },
+            { id: 3, sender: 'Dr. House', recipient: 'Admin', subject: 'Patient Transfer Query', date: '2023-11-08 16:00', body: 'Need assistance with transferring records for a new patient arriving next week.', unread: false }
+         ];
+
+         let billingData = [ // Standalone list for the billing section view
+            { id: 'INV001', patient: 'Alice Wonderland', patientId: 'P001', date: '2023-10-20', amount: 150.00, status: 'Paid' },
+            { id: 'INV002', patient: 'Bob The Builder', patientId: 'P002', date: '2023-09-01', amount: 120.00, status: 'Pending' },
+            { id: 'INV003', patient: 'Charlie Chaplin', patientId: 'P003', date: '2023-11-05', amount: 85.00, status: 'Paid' },
+            { id: 'INV004', patient: 'Alice Wonderland', patientId: 'P001', date: '2023-08-15', amount: 75.00, status: 'Paid' }
+         ];
+
+         let systemUsers = [ // User details for management section
+            { username: 'admin', name: 'Admin User', role: 'admin', lastLogin: '2023-11-12 08:00', status: 'Active' },
+            { username: 'dr.smith', name: 'Dr. Emily Smith', role: 'doctor', lastLogin: '2023-11-12 09:15', status: 'Active' },
+            { username: 'staff.jones', name: 'John Jones', role: 'staff', lastLogin: '2023-11-11 16:30', status: 'Active' },
+            { username: 'dr.house', name: 'Dr. Gregory House', role: 'doctor', lastLogin: '2023-11-10 11:00', status: 'Active' },
+            { username: 'inactive.user', name: 'Inactive User', role: 'staff', lastLogin: '2023-10-01 10:00', status: 'Inactive' }
+         ];
+
+        // --- State ---
+        let currentUser = null;
+        let currentView = 'dashboard'; // Default view after login
+        let activePatientId = null; // Keep track for share/print context
+        let dashboardChartInstance = null; // To store chart instance
+
+        // --- DOM Elements ---
+        const loginWrapper = document.getElementById('login-wrapper'); // Wrapper for login screen
+        const loginScreen = document.getElementById('login-screen'); // Inner login box
+        const mainApp = document.getElementById('main-app');
+        const loginForm = document.getElementById('login-form');
+        const loginError = document.getElementById('login-error');
+        const appSidebar = document.getElementById('app-sidebar');
+        const sidebarMenuList = document.getElementById('sidebar-menu-list'); // Target UL for filtering
+        const sidebarToggle = document.getElementById('sidebar-toggle'); // Mobile toggle
+        const appHeader = document.getElementById('app-header'); // Reference to header
+        const appContent = document.getElementById('app-content');
+        const pageTitle = document.getElementById('page-title');
+        const userNameDisplay = document.getElementById('user-name-display');
+        const userRoleDisplay = document.getElementById('user-role-display');
+        const userInitials = document.getElementById('user-initials');
+        const themeToggle = document.getElementById('theme-checkbox'); // Theme toggle checkbox
+        const logoutButton = document.getElementById('logout-button');
+        // navLinks needs to be queried *after* potential filtering in initializeUI
+        let navLinks = []; // Initialize as empty, query later
+        const contentSections = document.querySelectorAll('.content-section');
+        const patientTableBody = document.querySelector('#patient-table tbody');
+        const appointmentTableBody = document.querySelector('#appointment-table tbody');
+        const messageListUl = document.getElementById('message-list');
+        const billingTableBody = document.querySelector('#billing-table tbody');
+        const userTableBody = document.querySelector('#user-table tbody');
+        const dashboardWidgets = document.getElementById('dashboard-widgets');
+        const patientDetailsSection = document.getElementById('patient-details-section');
+        const messageDetailView = document.getElementById('message-detail-view');
+
+        // Store template menu items
+        const templateMenuItems = Array.from(sidebarMenuList.querySelectorAll('li[data-template-role]'));
+
+
+        // Modal Elements (references remain the same)
+        const shareModal = document.getElementById('share-modal');
+        const shareLinkOutput = document.getElementById('share-link-output');
+        const copyLinkButton = document.getElementById('copy-link-button');
+        const patientModal = document.getElementById('patient-modal');
+        const patientForm = document.getElementById('patient-form');
+        const appointmentModal = document.getElementById('appointment-modal');
+        const appointmentForm = document.getElementById('appointment-form');
+        const messageModal = document.getElementById('message-modal');
+        const messageForm = document.getElementById('message-form');
+        const userModal = document.getElementById('user-modal');
+        const userForm = document.getElementById('user-form');
+
+        // --- Helper Functions ---
+        function generatePatientId() { return 'P' + String(Date.now()).slice(-4); }
+        function generateMessageId() { return messages.length > 0 ? Math.max(...messages.map(m => m.id)) + 1 : 1; }
+        function generateInvoiceId() { return 'INV' + String(Date.now()).slice(-4); }
+
+        // --- Role Check Function ---
+        function hasPermission(action) {
+            if (!currentUser) return false;
+            const role = currentUser.role;
+            // Define permissions map (action -> array of allowed roles)
+            const permissions = {
+                'patient_add': ['admin', 'staff'],
+                'patient_edit': ['admin', 'doctor', 'staff'],
+                'patient_delete': ['admin'],
+                'patient_view_details': ['admin', 'doctor', 'staff'],
+                'appointment_add': ['admin', 'doctor', 'staff'],
+                'appointment_edit': ['admin', 'doctor', 'staff'],
+                'appointment_cancel': ['admin', 'doctor', 'staff'],
+                'message_compose': ['admin', 'doctor', 'staff'],
+                'message_view': ['admin', 'doctor', 'staff'],
+                'user_add': ['admin'],
+                'user_edit': ['admin'],
+                'user_toggle_status': ['admin'],
+                'billing_view': ['admin', 'staff'],
+                'settings_view': ['admin'],
+                'dashboard_view': ['admin', 'doctor', 'staff'],
+                // Section view permissions (must match data-target values)
+                'view_dashboard': ['admin', 'doctor', 'staff'],
+                'view_patients': ['admin', 'doctor', 'staff'],
+                'view_appointments': ['admin', 'doctor', 'staff'],
+                'view_messages': ['admin', 'doctor', 'staff'],
+                'view_billing': ['admin', 'staff'], // Billing only for admin & staff
+                'view_user-management': ['admin'], // Admin only
+                'view_settings': ['admin'], // Admin only
+                // Other specific actions
+                'share_record': ['admin', 'doctor', 'staff'],
+                'print_record': ['admin', 'doctor', 'staff'],
+            };
+            // console.log(`Checking permission for ${action}, role: ${role}. Result: ${permissions[action] && permissions[action].includes(role)}`); // Debugging log
+            return permissions[action] && permissions[action].includes(role);
+        }
+
+        // --- Modal Handling (Unchanged) ---
+        function showModal(modalId, mode = 'add', data = null) {
+            const modal = document.getElementById(modalId);
+            if (!modal) return;
+            const form = modal.querySelector('form');
+            const titleElement = modal.querySelector('h3');
+
+            if(form) form.reset(); // Reset form if it exists
+
+            if (modalId === 'patient-modal') {
+                 document.getElementById('patient-id-edit').value = '';
+                 titleElement.textContent = (mode === 'edit') ? 'Edit Patient Record' : 'Add New Patient';
+                if (mode === 'edit' && data) {
+                    document.getElementById('patient-id-edit').value = data.id;
+                    document.getElementById('patient-name').value = data.name;
+                    document.getElementById('patient-dob').value = data.dob;
+                    document.getElementById('patient-contact').value = data.contact;
+                    document.getElementById('patient-history').value = data.medicalHistory || '';
+                }
+            } else if (modalId === 'appointment-modal') {
+                 document.getElementById('appointment-index-edit').value = '';
+                 titleElement.textContent = (mode === 'edit') ? 'Edit Appointment' : 'Schedule New Appointment';
+                 const patientSelect = document.getElementById('appointment-patient');
+                 patientSelect.innerHTML = '<option value="" disabled selected>Select Patient...</option>';
+                 patients.forEach(p => {
+                     const option = document.createElement('option');
+                     option.value = p.id; option.textContent = `${p.name} (ID: ${p.id})`;
+                     patientSelect.appendChild(option);
+                 });
+                 if (mode === 'edit' && data !== null) { // data is the index
+                     const appt = appointments[data];
+                     if(appt){
+                        document.getElementById('appointment-index-edit').value = data;
+                        patientSelect.value = appt.patientId || '';
+                        // Safely format datetime-local value
+                        try {
+                            if (appt.date) {
+                                const dateObj = new Date(appt.date.replace(' ', 'T'));
+                                if (!isNaN(dateObj)) {
+                                    // Format YYYY-MM-DDTHH:mm
+                                    const year = dateObj.getFullYear();
+                                    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+                                    const day = String(dateObj.getDate()).padStart(2, '0');
+                                    const hours = String(dateObj.getHours()).padStart(2, '0');
+                                    const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+                                    document.getElementById('appointment-datetime').value = `${year}-${month}-${day}T${hours}:${minutes}`;
+                                } else { document.getElementById('appointment-datetime').value = ''; }
+                            } else { document.getElementById('appointment-datetime').value = ''; }
+                        } catch (e) {
+                            console.error("Error parsing appointment date:", e);
+                            document.getElementById('appointment-datetime').value = '';
+                        }
+                        document.getElementById('appointment-doctor').value = appt.doctor;
+                        document.getElementById('appointment-reason').value = appt.reason;
+                        document.getElementById('appointment-status').value = appt.status;
+                     }
+                 }
+            } else if (modalId === 'message-modal') {
+                 titleElement.textContent = 'Compose New Secure Message';
+                 // Optionally pre-fill recipient if replying later
+            } else if (modalId === 'user-modal') {
+                 document.getElementById('user-username-edit').value = '';
+                 const usernameInput = document.getElementById('user-username');
+                 titleElement.textContent = (mode === 'edit') ? 'Edit User' : 'Add New User';
+                 usernameInput.readOnly = (mode === 'edit');
+                 usernameInput.style.backgroundColor = (mode === 'edit') ? 'var(--background-table-header)' : 'var(--background-card)'; // Visual cue using vars
+                 document.getElementById('user-password').value = ''; // Clear password field always
+                 document.getElementById('user-password').placeholder = (mode === 'edit') ? 'Leave blank to keep existing password' : 'Enter new password';
+                 // Make password required only for 'add' mode
+                 document.getElementById('user-password').required = (mode === 'add');
+
+
+                 if (mode === 'edit' && data) { // data is username
+                     const user = systemUsers.find(u => u.username === data);
+                     if(user) {
+                        document.getElementById('user-username-edit').value = user.username;
+                        usernameInput.value = user.username;
+                        document.getElementById('user-fullname').value = user.name;
+                        document.getElementById('user-role-select').value = user.role;
+                        document.getElementById('user-status-select').value = user.status;
+                     }
+                 }
+            } else if (modalId === 'share-modal') {
+                 // Logic is handled in showShareModal directly
+            }
+            modal.classList.add('visible');
+            document.body.style.overflow = 'hidden'; // Prevent body scroll when modal is open
+        }
+
+        function hideModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                 modal.classList.remove('visible');
+                 // Check if any other modals are visible before restoring body scroll
+                const anyVisibleModals = document.querySelectorAll('.modal.visible').length > 0;
+                if (!anyVisibleModals) {
+                    document.body.style.overflow = '';
+                }
+            }
+        }
+
+        // --- Functions ---
+
+        // Login Handler (Unchanged)
+        function handleLogin(event) {
+            event.preventDefault();
+            loginError.textContent = '';
+            const loginButton = loginForm.querySelector('.login-button');
+            loginButton.disabled = true; // Disable button during check
+
+            const username = loginForm.username.value;
+            const password = loginForm.password.value;
+            const role = loginForm.role.value;
+            const user = users[username]; // Get potential user from login credentials
+            const systemUser = systemUsers.find(su => su.username === username); // Get user details from system list
+
+            // Simulate network delay
+            setTimeout(() => {
+                if (user && user.password === password && user.role === role && systemUser) {
+                    if (systemUser.status !== 'Active') {
+                        loginError.textContent = 'Your account is inactive. Please contact an administrator.';
+                        loginButton.disabled = false; // Re-enable button
+                    } else {
+                        // SUCCESSFUL LOGIN
+                        currentUser = user; // Set the current logged-in user
+                        loginWrapper.classList.add('hidden'); // Start fade out login screen
+
+                        setTimeout(() => {
+                            loginWrapper.style.display = 'none'; // Hide after fade
+                            mainApp.style.display = 'flex'; // Set display before adding class
+                            setTimeout(() => {
+                                mainApp.classList.add('visible'); // Fade in main app
+                                initializeUI();
+                                navigateTo('dashboard'); // Go to dashboard after login
+                            }, 50); // Short delay for display change to register
+                        }, 500); // Match CSS transition duration
+                    }
+                } else {
+                    loginError.textContent = 'Invalid credentials or role selection.';
+                    loginButton.disabled = false; // Re-enable button
+                }
+            }, 500); // 0.5 second delay
+        }
+
+        // Logout Handler (Unchanged)
+        function handleLogout() {
+            currentUser = null;
+            mainApp.classList.remove('visible'); // Start fade out main app
+            appSidebar.classList.remove('open'); // Ensure sidebar is closed on mobile
+            appHeader.classList.remove('sidebar-open'); // Ensure header class is removed
+
+            setTimeout(() => {
+                 mainApp.style.display = 'none'; // Hide after fade
+                 loginWrapper.style.display = 'flex'; // Show login wrapper
+                 loginWrapper.classList.remove('hidden'); // Fade in login screen
+                 loginForm.reset();
+                 loginError.textContent = '';
+                 const loginButton = loginForm.querySelector('.login-button');
+                 loginButton.disabled = false; // Ensure login button is enabled
+
+                 // Reset UI elements that might hold old data
+                 userNameDisplay.textContent = '';
+                 userRoleDisplay.textContent = '';
+                 userInitials.textContent = '';
+                 pageTitle.innerHTML = '';
+                 dashboardWidgets.innerHTML = ''; // Clear dynamic content
+                 if (dashboardChartInstance) { dashboardChartInstance.destroy(); dashboardChartInstance = null; } // Destroy chart
+                 sidebarMenuList.innerHTML = ''; // Clear filtered menu
+
+            }, 500); // Match CSS transition duration
+        }
+
+        // ======================================================
+        // ========= UPDATED initializeUI Function ==============
+        // ======================================================
+        function initializeUI() {
+             if (!currentUser) return;
+
+            userNameDisplay.textContent = currentUser.name;
+            userRoleDisplay.textContent = currentUser.role.charAt(0).toUpperCase() + currentUser.role.slice(1);
+            userRoleDisplay.className = `user-role ${currentUser.role}`;
+            userInitials.textContent = currentUser.initials || currentUser.name.split(' ').map(n=>n[0]).join('').toUpperCase();
+
+            // --- Sidebar Menu Filtering (FIXED) ---
+            sidebarMenuList.innerHTML = ''; // Clear the list first
+
+             // Use the stored template items
+            templateMenuItems.forEach(templateItem => {
+                const link = templateItem.querySelector('a.nav-link[data-target]');
+                if (link) {
+                    const targetView = link.dataset.target;
+                    const viewPermission = `view_${targetView.replace('-', '_')}`;
+
+                    // Check if user has permission for this view
+                    if (hasPermission(viewPermission)) {
+                        // Clone the template item to add to the list
+                        const newItem = templateItem.cloneNode(true);
+                        newItem.style.display = ''; // Make it visible
+                        sidebarMenuList.appendChild(newItem); // Add the item to the list
+                    }
+                 }
+            });
+
+            // Update the navLinks NodeList reference *after* filtering and adding
+            navLinks = sidebarMenuList.querySelectorAll('.nav-link');
+            addNavLinkListeners(); // Re-attach listeners to the filtered links
+
+            // --- Filter Content Sections (Still relevant) ---
+             contentSections.forEach(section => {
+                 const sectionId = section.id.replace('-section', '');
+                 const correspondingLink = sidebarMenuList.querySelector(`.nav-link[data-target="${sectionId}"]`);
+                 if (!correspondingLink && !section.classList.contains('active')) {
+                      // Section is inaccessible and not active, can leave it hidden
+                 }
+             });
+
+
+            // --- Disable Action Buttons based on Permissions ---
+            const addPatientBtn = document.getElementById('add-patient-button'); if(addPatientBtn) addPatientBtn.disabled = !hasPermission('patient_add');
+            const addApptBtn = document.getElementById('add-appointment-button'); if(addApptBtn) addApptBtn.disabled = !hasPermission('appointment_add');
+            const composeMsgBtn = document.getElementById('compose-message-button'); if(composeMsgBtn) composeMsgBtn.disabled = !hasPermission('message_compose');
+            const addUserBtn = document.getElementById('add-user-button'); if(addUserBtn) addUserBtn.disabled = !hasPermission('user_add');
+
+            // Load initial data for the default view (Dashboard) only if permitted
+            if (hasPermission('view_dashboard')) {
+                 // Check if dashboard is the current active view (or if no view is active yet)
+                 // This prevents unnecessarily reloading dashboard if user logs in while another section was hypothetically active
+                 const activeSection = document.querySelector('.content-section.active');
+                 if (!activeSection || activeSection.id === 'dashboard-section') {
+                     loadDashboardData();
+                     navigateTo('dashboard'); // Ensure dashboard is set as active view/link
+                 } else {
+                     // If another section is somehow active, load its data instead
+                     const currentActiveId = activeSection.id.replace('-section', '');
+                     navigateTo(currentActiveId);
+                 }
+            } else {
+                // If user cannot view dashboard, try navigating to the first available section
+                const firstAllowedLink = sidebarMenuList.querySelector('.nav-link');
+                if (firstAllowedLink) {
+                    navigateTo(firstAllowedLink.dataset.target);
+                } else {
+                    // Handle case where user has NO permissions
+                    appContent.innerHTML = '<div class="card"><p>Error: No accessible sections found for your role.</p></div>';
+                    pageTitle.innerHTML = '<i class="fas fa-ban"></i> No Access';
+                }
+            }
+            // Apply initial theme (already handled by dedicated function `applyInitialTheme`)
+        }
+        // ======================================================
+        // ========= END of UPDATED initializeUI Function =======
+        // ======================================================
+
+
+        // Navigation Handler (Unchanged - permission checks are robust)
+        function navigateTo(targetViewId, params = null) {
+             // Close any open modals first
+             document.querySelectorAll('.modal.visible').forEach(modal => hideModal(modal.id));
+             // Close mobile sidebar if open
+             if (appSidebar.classList.contains('open')) {
+                toggleMobileSidebar(); // Use the function to ensure header class is also updated
+             }
+
+            // Permission Check (Crucial)
+            const viewPermission = `view_${targetViewId.replace('-', '_')}`;
+            // Exception: patient-details requires view_patients permission
+            const effectivePermission = (targetViewId === 'patient-details') ? 'view_patients' : viewPermission;
+
+            if (!hasPermission(effectivePermission)) {
+                 console.warn(`Access Denied: Role '${currentUser.role}' cannot view section '${targetViewId}'. Required permission: '${effectivePermission}'`);
+                 alert("Access Denied: You do not have permission to view this section.");
+                  // Redirect to dashboard if accessible, otherwise show error in content
+                  if (currentView !== 'dashboard' && hasPermission('view_dashboard')) {
+                      navigateTo('dashboard');
+                  } else {
+                       appContent.innerHTML = `<div class="card"><p>Access Denied: You do not have permission to view '${targetViewId}'.</p></div>`;
+                       // Clear active state from links
+                       navLinks.forEach(link => link.classList.remove('active'));
+                       pageTitle.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Access Denied`;
+                  }
+                 return; // Stop navigation
+             }
+
+            // Update Active Section
+            contentSections.forEach(section => section.classList.remove('active'));
+            const targetSection = document.getElementById(`${targetViewId}-section`);
+
+            if (targetSection) {
+                targetSection.classList.add('active');
+                currentView = targetViewId;
+
+                // Update Active Link and Page Title
+                navLinks.forEach(link => link.classList.remove('active'));
+                const activeLink = sidebarMenuList.querySelector(`.nav-link[data-target="${targetViewId}"]`); // Query filtered list
+                 if(activeLink) {
+                     // Use innerHTML of the span within the link for title text
+                     const spanContent = activeLink.querySelector('span')?.innerHTML || '';
+                     const iconHTML = activeLink.querySelector('i')?.outerHTML || '';
+                     pageTitle.innerHTML = `${iconHTML} ${spanContent}`; // Combine icon and text
+                     activeLink.classList.add('active');
+                 } else if (targetViewId === 'patient-details') {
+                    // Title is set dynamically within loadPatientDetails
+                 } else {
+                    // Fallback title (should ideally not happen if all sections have links)
+                     const capitalized = targetViewId.charAt(0).toUpperCase() + targetViewId.slice(1).replace('-', ' ');
+                     pageTitle.innerHTML = `<i class="fas fa-question-circle"></i> ${capitalized}`;
+                 }
+
+                // Scroll content area to top
+                appContent.scrollTop = 0;
+
+                // Load Data for the Target Section
+                switch(targetViewId) {
+                    case 'dashboard': loadDashboardData(); break;
+                    case 'patients': loadPatientData(); break;
+                    case 'patient-details': if (params && params.patientId) { loadPatientDetails(params.patientId); } else { console.error("Missing patientId for patient-details view"); navigateTo('patients'); } break;
+                    case 'appointments': loadAppointmentData(); break;
+                    case 'messages': loadMessageData(); break;
+                    case 'billing': loadBillingData(); break;
+                    case 'user-management': loadUserData(); break;
+                    case 'settings': /* No dynamic data load needed currently */ break;
+                    default: console.warn("Navigation target section has no specific data load function:", targetViewId);
+                }
+
+            } else {
+                console.error("Navigation target section not found:", `${targetViewId}-section`);
+                 if (hasPermission('view_dashboard')) { navigateTo('dashboard'); } // Redirect to dashboard on error
+            }
+        }
+
+        // --- Data Loading Functions ---
+
+        // Load Dashboard Data (Added comment about static data)
+        function loadDashboardData() {
+            if (!hasPermission('view_dashboard')) return;
+            dashboardWidgets.innerHTML = ''; // Clear previous widgets
+
+             // Calculate dynamic counts
+             const upcomingAppointmentsCount = appointments.filter(a => {
+                 try { return new Date(a.date.replace(' ', 'T')) >= new Date() && a.status !== 'Cancelled' && a.status !== 'Completed'; }
+                 catch(e) { console.warn(`Invalid date format for appointment: ${a.date}`); return false; }
+             }).length;
+             const unreadMessagesCount = messages.filter(m => m.unread).length;
+             const totalRevenue = billingData.reduce((sum, inv) => sum + (inv.status === 'Paid' ? inv.amount : 0), 0);
+
+             const widgetDefinitions = [
+                 { permission: 'view_patients', target: 'patients', icon: 'fa-users', title: `${patients.length} Active Patients`, text: 'Managed in the system', colorClass: 'patients' },
+                 { permission: 'view_appointments', target: 'appointments', icon: 'fa-calendar-check', title: `${upcomingAppointmentsCount} Upcoming Appts`, text: 'Scheduled & active', colorClass: 'appointments' },
+                 { permission: 'view_messages', target: 'messages', icon: 'fa-envelope-open-text', title: `${unreadMessagesCount} Unread Messages`, text: 'Require your attention', colorClass: 'messages' },
+                 { permission: 'view_billing', target: 'billing', icon: 'fa-dollar-sign', title: `$${totalRevenue.toFixed(2)} Revenue (Paid)`, text: 'Total collected revenue', colorClass: 'revenue' }
+             ];
+
+             widgetDefinitions.forEach(widgetDef => {
+                 if (hasPermission(widgetDef.permission)) { // Only show widget if target section is viewable
+                     const widgetDiv = document.createElement('div');
+                     widgetDiv.className = 'card widget clickable-widget';
+                     widgetDiv.setAttribute('data-target', widgetDef.target);
+                     widgetDiv.setAttribute('title', `Click to go to ${widgetDef.target}`);
+                     widgetDiv.innerHTML = `<div class="widget-icon ${widgetDef.colorClass}"><i class="fas ${widgetDef.icon}"></i></div> <div class="widget-info"><h3>${widgetDef.title}</h3><p>${widgetDef.text}</p></div>`;
+                     dashboardWidgets.appendChild(widgetDiv);
+                 }
+            });
+
+            // Chart.js: Appointment Overview
+            const chartCanvas = document.getElementById('appointmentChart');
+            if (chartCanvas) {
+                const ctx = chartCanvas.getContext('2d');
+                 // Destroy previous chart instance if it exists BEFORE getting computed styles
+                if (dashboardChartInstance) {
+                    dashboardChartInstance.destroy();
+                }
+
+                // Get colors dynamically based on current theme for chart AFTER potential theme change
+                const computedStyle = getComputedStyle(document.documentElement);
+                const primaryColorValue = computedStyle.getPropertyValue('--primary-color').trim();
+                const gridColorValue = computedStyle.getPropertyValue('--border-color').trim();
+                const textColorValue = computedStyle.getPropertyValue('--text-muted').trim();
+
+                // NOTE: Using static data for demonstration purposes.
+                const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                const data = [5, 8, 6, 10, 7, 4, 6]; // Example static data for a week
+
+                // Create the new chart instance
+                dashboardChartInstance = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                             label: 'Appointments Scheduled (Demo)',
+                             data: data,
+                             borderColor: primaryColorValue || '#0a7f9c', // Fallback
+                             // Use a very transparent version of primary for fill
+                             backgroundColor: primaryColorValue ? primaryColorValue + '1A' : 'rgba(10, 127, 156, 0.1)', // Add alpha hex or fallback
+                             fill: true,
+                             tension: 0.4 }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false, // Keep this false with fixed height canvas
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                suggestedMax: Math.max(...data) + 2,
+                                grid: { color: gridColorValue },
+                                ticks: { color: textColorValue }
+                            },
+                            x: {
+                                grid: { color: gridColorValue },
+                                ticks: { color: textColorValue }
+                           }
+                         },
+                        plugins: {
+                            legend: {
+                                display: false // Keep legend hidden
+                                // labels: { color: textColorValue } // Style legend if shown
+                            }
+                         }
+                    }
+                 });
+            } else { console.warn("Dashboard chart canvas not found."); }
+        }
+
+        // --- Other data loading functions (Identical to previous correct version) ---
+        function loadPatientData() {
+             if (!hasPermission('view_patients')) return;
+             patientTableBody.innerHTML = ''; // Clear existing rows
+             const canEdit = hasPermission('patient_edit');
+             const canDelete = hasPermission('patient_delete');
+             const canViewDetails = hasPermission('patient_view_details');
+
+             // Add search functionality (basic example)
+             const searchTerm = document.getElementById('patient-search').value.toLowerCase();
+             const filteredPatients = patients.filter(p =>
+                p.name.toLowerCase().includes(searchTerm) ||
+                p.id.toLowerCase().includes(searchTerm) ||
+                p.contact.toLowerCase().includes(searchTerm)
+             );
+
+
+             if (filteredPatients.length === 0) {
+                patientTableBody.innerHTML = `<tr><td colspan="6">No patients found${searchTerm ? ' matching "' + searchTerm + '"' : ''}.</td></tr>`;
+                return;
+             }
+
+             filteredPatients.forEach(p => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${p.id}</td>
+                    <td>${p.name}</td>
+                    <td>${p.dob}</td>
+                    <td>${p.contact}</td>
+                    <td>${p.lastVisit || 'N/A'}</td>
+                    <td class="action-buttons no-print">
+                        <button class="btn-view" title="View Details" data-patient-id="${p.id}" ${!canViewDetails ? 'disabled' : ''}><i class="fas fa-eye"></i></button>
+                        <button class="btn-edit" title="Edit Patient" data-patient-id="${p.id}" ${!canEdit ? 'disabled' : ''}><i class="fas fa-edit"></i></button>
+                        <button class="btn-delete" title="Delete Patient" data-patient-id="${p.id}" ${!canDelete ? 'disabled' : ''}><i class="fas fa-trash-alt"></i></button>
+                    </td>`;
+                patientTableBody.appendChild(row);
+             });
+             // Ensure add button state is correct
+             document.getElementById('add-patient-button').disabled = !hasPermission('patient_add');
+        }
+
+        function loadPatientDetails(patientId) {
+            activePatientId = patientId; // Store the currently viewed patient ID
+            const patient = patients.find(p => p.id === patientId);
+            const canShare = hasPermission('share_record');
+            const canPrint = hasPermission('print_record');
+             const patientDetailsContainer = patientDetailsSection.querySelector('#printable-patient-record');
+             const actionButtonContainer = patientDetailsSection.querySelector('.action-buttons');
+
+             if (!patientDetailsContainer || !actionButtonContainer) {
+                  console.error("Required elements missing in #patient-details-section");
+                  return;
+              }
+
+
+            if (!patient) {
+                 // Clear previous content before showing error
+                patientDetailsContainer.innerHTML = '';
+                actionButtonContainer.innerHTML = '';
+                patientDetailsContainer.innerHTML = `<div class="card"><p>Error: Patient not found.</p></div>`;
+                pageTitle.innerHTML = `<i class="fas fa-exclamation-circle"></i> Not Found`;
+                activePatientId = null; // Reset if not found
+                return;
+            }
+
+             // Update page title
+             pageTitle.innerHTML = `<i class="fas fa-user-injured"></i> Record: ${patient.name}`;
+
+             // Generate initials for avatar
+             const initials = patient.name.split(' ').map(n=>n[0]).join('').toUpperCase();
+
+             // Filter data specific to this patient
+             const patientAppointments = appointments
+                .filter(a => a.patientId === patient.id)
+                .sort((a,b) => { try { return new Date(b.date.replace(' ', 'T')) - new Date(a.date.replace(' ', 'T'));} catch(e){return 0;} }) // Sort recent first
+                .map(a => `<li>${a.date} - ${a.doctor} (${a.reason || 'N/A'}) - <span style="font-weight:bold;">${a.status}</span></li>`)
+                .join('');
+
+             const patientBilling = billingData
+                .filter(b => b.patientId === patient.id)
+                .sort((a,b) => { try{ return new Date(b.date) - new Date(a.date);} catch(e){return 0;} }) // Sort recent first
+                .map(b => `<tr><td>${b.id}</td><td>${b.date}</td><td>$${b.amount.toFixed(2)}</td><td><span style="font-weight:bold; color: ${b.status === 'Paid' ? 'var(--success-color)' : 'var(--warning-color)'};">${b.status}</span></td></tr>`)
+                .join('');
+
+
+             // Build the HTML structure
+             patientDetailsContainer.innerHTML = `
+                <div class="card non-interactive">
+                    <div class="patient-header">
+                        <div class="patient-avatar">${initials}</div>
+                        <div class="patient-info">
+                            <h3>${patient.name}</h3>
+                            <p><strong>ID:</strong> ${patient.id}</p>
+                            <p><strong>DOB:</strong> ${patient.dob}</p>
+                            <p><strong>Contact:</strong> ${patient.contact}</p>
+                            <p><strong>Last Visit:</strong> ${patient.lastVisit || 'N/A'}</p>
+                        </div>
+                    </div>
+
+                    <div class="tab-navigation no-print">
+                        <button class="tab-button active" data-tab="history">History & Notes</button>
+                        <button class="tab-button" data-tab="appointments">Appointments</button>
+                        <button class="tab-button" data-tab="billing">Billing</button>
+                    </div>
+
+                    <div id="history-tab" class="tab-content active">
+                        ${canPrint ? `<button class="btn btn-secondary btn-sm btn-print-tab no-print" data-print-target="history-tab" title="Print History"><i class="fas fa-print"></i> Print</button>` : ''}
+                        <h4>Medical History & Notes</h4>
+                        <p style="white-space: pre-wrap;">${patient.medicalHistory ? patient.medicalHistory : 'No history recorded.'}</p>
+                    </div>
+
+                    <div id="appointments-tab" class="tab-content">
+                         ${canPrint ? `<button class="btn btn-secondary btn-sm btn-print-tab no-print" data-print-target="appointments-tab" title="Print Appointments"><i class="fas fa-print"></i> Print</button>` : ''}
+                        <h4>Appointments</h4>
+                        ${patientAppointments ? `<ul>${patientAppointments}</ul>` : '<p>No appointments found.</p>'}
+                    </div>
+
+                    <div id="billing-tab" class="tab-content">
+                         ${canPrint ? `<button class="btn btn-secondary btn-sm btn-print-tab no-print" data-print-target="billing-tab" title="Print Billing"><i class="fas fa-print"></i> Print</button>` : ''}
+                        <h4>Billing</h4>
+                        ${patientBilling ? `
+                            <div style="overflow-x: auto;">
+                                <table class="data-table">
+                                    <thead><tr><th>ID</th><th>Date</th><th>Amount</th><th>Status</th></tr></thead>
+                                    <tbody>${patientBilling}</tbody>
+                                </table>
+                            </div>
+                        ` : '<p>No billing records found.</p>'}
+                    </div>
+                </div>`;
+
+            // Add share button if permitted
+            actionButtonContainer.innerHTML = ''; // Clear previous buttons
+            if (canShare) {
+                const shareButton = document.createElement('button');
+                shareButton.className = 'btn btn-secondary btn-share-record no-print';
+                shareButton.innerHTML = '<i class="fas fa-share-alt"></i> Share Secure Link';
+                shareButton.onclick = showShareModal; // Attach handler directly
+                actionButtonContainer.appendChild(shareButton);
+            }
+
+            // Re-attach tab navigation listeners for the newly added content
+            setupPatientDetailInteractions();
+        }
+
+         function setupPatientDetailInteractions() {
+            const detailSection = document.getElementById('patient-details-section');
+            if (!detailSection) return;
+
+            const tabButtons = detailSection.querySelectorAll('.tab-button');
+            const tabContents = detailSection.querySelectorAll('.tab-content');
+
+             // Clone and replace to ensure old listeners are detached
+             tabButtons.forEach(button => {
+                const newButton = button.cloneNode(true);
+                button.parentNode.replaceChild(newButton, button);
+             });
+
+             // Add listeners to the new buttons
+             const newTabButtons = detailSection.querySelectorAll('.tab-button');
+            newTabButtons.forEach(button => {
+                 button.addEventListener('click', () => {
+                     const targetTab = button.dataset.tab;
+                     // Deactivate others
+                     newTabButtons.forEach(btn => btn.classList.remove('active'));
+                     tabContents.forEach(content => content.classList.remove('active'));
+                     // Activate clicked
+                     button.classList.add('active');
+                     const targetContent = detailSection.querySelector(`#${targetTab}-tab`);
+                     if(targetContent) targetContent.classList.add('active');
+                 });
+            });
+         }
+
+        function loadAppointmentData() {
+             if (!hasPermission('view_appointments')) return;
+             appointmentTableBody.innerHTML = '';
+             const canEdit = hasPermission('appointment_edit');
+             const canCancel = hasPermission('appointment_cancel');
+
+             const sortedAppointments = appointments.sort((a, b) => {
+                 try { return new Date(a.date.replace(' ', 'T')) - new Date(b.date.replace(' ', 'T')); } // Sort oldest first for schedule view
+                 catch(e) { return 0; }
+             });
+
+             if (sortedAppointments.length === 0) {
+                 appointmentTableBody.innerHTML = `<tr><td colspan="6">No appointments scheduled.</td></tr>`;
+                 return;
+             }
+
+
+             sortedAppointments.forEach((a, index) => {
+                 const row = document.createElement('tr');
+                 const isPastOrCancelled = a.status === 'Completed' || a.status === 'Cancelled';
+                 let statusColor = 'var(--warning-color)'; // Pending/Default
+                 if (a.status === 'Confirmed') statusColor = 'var(--success-color)';
+                 if (isPastOrCancelled) statusColor = 'var(--text-muted)'; // Gray using var
+
+                 row.innerHTML = `
+                    <td>${a.date || 'N/A'}</td>
+                    <td>${a.patient || 'N/A'} (ID: ${a.patientId || 'N/A'})</td>
+                    <td>${a.doctor || 'N/A'}</td>
+                    <td>${a.reason || 'N/A'}</td>
+                    <td><span style="color: ${statusColor}; font-weight: bold;">${a.status || 'N/A'}</span></td>
+                    <td class="action-buttons no-print">
+                        <button class="btn-edit" title="Edit/Reschedule" data-appointment-index="${appointments.findIndex(app => app === a)}" ${!canEdit || isPastOrCancelled ? 'disabled' : ''}><i class="fas fa-edit"></i></button>
+                        <button class="btn-cancel" title="Cancel Appointment" data-appointment-index="${appointments.findIndex(app => app === a)}" ${!canCancel || isPastOrCancelled ? 'disabled' : ''}><i class="fas fa-calendar-times"></i></button>
+                    </td>`;
+                 appointmentTableBody.appendChild(row);
+             });
+             // Ensure add button state is correct
+             document.getElementById('add-appointment-button').disabled = !hasPermission('appointment_add');
+        }
+
+        function loadMessageData() {
+             if (!hasPermission('view_messages')) return;
+             messageListUl.innerHTML = '';
+             messageDetailView.style.display = 'none'; // Hide detail view initially
+             const canView = hasPermission('message_view');
+
+             const sortedMessages = messages.sort((a, b) => { try{ return new Date(b.date.replace(' ', 'T')) - new Date(a.date.replace(' ', 'T')); } catch(e){ return 0; } } ); // Sort recent first
+
+             if (sortedMessages.length === 0) {
+                 messageListUl.innerHTML = '<li class="message-item"><p>No messages in your inbox.</p></li>';
+                 return;
+             }
+
+             sortedMessages.forEach(m => {
+                 const li = document.createElement('li');
+                 li.className = `message-item ${m.unread ? 'unread' : ''}`;
+                 li.setAttribute('data-message-id', m.id);
+                 li.innerHTML = `
+                     <div class="message-sender">From: ${m.sender} (To: ${m.recipient || 'Unknown'})</div>
+                     <div class="message-subject">${m.subject || '(No Subject)'}</div>
+                     <div class="message-date">${m.date || 'N/A'}</div>`;
+                 if (canView) {
+                    li.style.cursor = 'pointer';
+                    li.title = 'Click to read';
+                    // Add listener via delegation later
+                 } else {
+                     li.style.cursor = 'not-allowed';
+                     li.title = 'Read permission required';
+                 }
+                 messageListUl.appendChild(li);
+             });
+             // Ensure compose button state is correct
+             document.getElementById('compose-message-button').disabled = !hasPermission('message_compose');
+        }
+
+        function showMessageDetail(messageId) {
+            const message = messages.find(m => m.id === messageId);
+            if (!message || !hasPermission('message_view')) return;
+
+            document.getElementById('message-detail-subject').textContent = message.subject || '(No Subject)';
+            document.getElementById('message-detail-sender').textContent = `From: ${message.sender} (To: ${message.recipient || 'Unknown'})`;
+            document.getElementById('message-detail-date').textContent = ` (${message.date || 'N/A'})`;
+            document.getElementById('message-detail-body').textContent = message.body || '(No message body)';
+            messageDetailView.style.display = 'block';
+
+             // Mark as read
+             if(message.unread) {
+                 message.unread = false;
+                 const listItem = messageListUl.querySelector(`.message-item[data-message-id="${messageId}"]`);
+                 if (listItem) listItem.classList.remove('unread');
+                 // Update dashboard widget if currently visible (or next time it loads)
+                 if(currentView === 'dashboard'){ loadDashboardData(); }
+             }
+
+             // Scroll the message list item into view if needed
+            const listItem = messageListUl.querySelector(`.message-item[data-message-id="${messageId}"]`);
+            if (listItem) { listItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
+        }
+
+        function loadBillingData() {
+            if(!hasPermission('view_billing')) return;
+            billingTableBody.innerHTML = '';
+
+             const sortedBilling = billingData.sort((a,b) => { try { return new Date(b.date) - new Date(a.date); } catch(e){ return 0; } } ); // Sort recent first
+
+             if (sortedBilling.length === 0) {
+                billingTableBody.innerHTML = `<tr><td colspan="6">No billing statements found.</td></tr>`;
+                return;
+             }
+
+             sortedBilling.forEach(b => {
+                 const row = document.createElement('tr');
+                 const statusColor = b.status === 'Paid' ? 'var(--success-color)' : (b.status === 'Pending' ? 'var(--warning-color)' : 'var(--danger-color)'); // Example for overdue/cancelled
+                 row.innerHTML = `
+                     <td>${b.id}</td>
+                     <td>${b.patient || 'N/A'} (ID: ${b.patientId || 'N/A'})</td>
+                     <td>${b.date}</td>
+                     <td>$${b.amount.toFixed(2)}</td>
+                     <td><span style="color: ${statusColor}; font-weight: bold;">${b.status}</span></td>
+                     <td class="action-buttons no-print">
+                         <button class="btn-view" title="View Details (Not Implemented)" disabled><i class="fas fa-eye"></i></button>
+                         ${b.status !== 'Paid' ? `<button class="btn-edit" title="Mark as Paid (Not Implemented)" disabled><i class="fas fa-check-circle"></i></button>` : ''}
+                         <button class="btn-print" title="Print Statement (Not Implemented)" disabled><i class="fas fa-print"></i></button>
+                     </td>`;
+                 billingTableBody.appendChild(row);
+             });
+        }
+
+        function loadUserData() {
+             if (!hasPermission('view_user-management')) return;
+             userTableBody.innerHTML = '';
+             const canEdit = hasPermission('user_edit');
+             const canToggle = hasPermission('user_toggle_status');
+
+             if (systemUsers.length === 0) {
+                 userTableBody.innerHTML = `<tr><td colspan="6">No users found in the system.</td></tr>`;
+                 return;
+             }
+
+             systemUsers.forEach(u => {
+                 const row = document.createElement('tr');
+                 const roleDisplay = u.role.charAt(0).toUpperCase() + u.role.slice(1);
+                 const statusColor = u.status === 'Active' ? 'var(--success-color)' : 'var(--danger-color)';
+                  // More reliable check if it's the logged-in user
+                 const currentSystemUsername = systemUsers.find(su => su.name === currentUser.name)?.username;
+                 const isCurrentUser = u.username === currentSystemUsername;
+
+
+                 row.innerHTML = `
+                     <td>${u.username}</td>
+                     <td>${u.name}</td>
+                     <td><span class="user-role ${u.role}">${roleDisplay}</span></td>
+                     <td>${u.lastLogin || 'Never'}</td>
+                     <td><span style="color: ${statusColor}; font-weight: bold;">${u.status}</span></td>
+                     <td class="action-buttons no-print">
+                         <button class="btn-edit" title="Edit User" data-user-username="${u.username}" ${!canEdit ? 'disabled' : ''}><i class="fas fa-edit"></i></button>
+                         <button class="${u.status === 'Active' ? 'btn-delete' : 'btn-activate'}" title="${u.status === 'Active' ? 'Deactivate' : 'Activate'} User" data-user-username="${u.username}" ${!canToggle || isCurrentUser ? 'disabled' : ''}><i class="fas ${u.status === 'Active' ? 'fa-user-slash' : 'fa-user-check'}"></i></button>
+                     </td>`;
+                 userTableBody.appendChild(row);
+             });
+             // Ensure add button state is correct
+             const addUserBtn = document.getElementById('add-user-button');
+             if(addUserBtn) addUserBtn.disabled = !hasPermission('user_add');
+        }
+
+        // --- Form Save Handlers --- (Identical to previous correct version) ---
+        function handleSavePatient(event) {
+            event.preventDefault();
+            const patientId = document.getElementById('patient-id-edit').value;
+            const isEditing = !!patientId;
+
+            if (isEditing && !hasPermission('patient_edit')) { alert("Permission denied to edit patients."); return; }
+            if (!isEditing && !hasPermission('patient_add')) { alert("Permission denied to add patients."); return; }
+
+            const name = document.getElementById('patient-name').value.trim();
+            const dob = document.getElementById('patient-dob').value;
+            const contact = document.getElementById('patient-contact').value.trim();
+            const medicalHistory = document.getElementById('patient-history').value.trim();
+
+            if (!name || !dob || !contact) { alert("Name, Date of Birth, and Contact are required."); return; }
+
+            let originalName = null;
+
+            if (isEditing) { // Editing existing patient
+                const patientIndex = patients.findIndex(p => p.id === patientId);
+                if (patientIndex > -1) {
+                    originalName = patients[patientIndex].name; // Store original name before update
+                    patients[patientIndex] = {
+                        ...patients[patientIndex], // Keep existing fields like lastVisit etc.
+                        name,
+                        dob,
+                        contact,
+                        medicalHistory
+                    };
+                     // Update name in related records if it changed
+                     if (originalName && originalName !== name) {
+                         updateRelatedRecords(patientId, name);
+                     }
+                    alert('Patient record updated successfully.');
+                } else {
+                    alert('Error: Patient to edit not found.'); return;
+                }
+            } else { // Adding new patient
+                const newPatient = {
+                    id: generatePatientId(),
+                    name, dob, contact, medicalHistory,
+                    lastVisit: null,
+                    billing: [],
+                };
+                patients.push(newPatient);
+                alert('Patient added successfully.');
+            }
+
+            hideModal('patient-modal');
+            loadPatientData(); // Refresh the main patient list
+            loadDashboardData(); // Update dashboard widgets
+
+             if (isEditing && currentView === 'patient-details' && activePatientId === patientId) {
+                 loadPatientDetails(patientId);
+             } else if (currentView === 'patient-details' && !isEditing) {
+                  navigateTo('patients');
+              }
+        }
+
+        function handleSaveAppointment(event) {
+            event.preventDefault();
+            const apptIndexStr = document.getElementById('appointment-index-edit').value;
+            const isEditing = apptIndexStr !== '';
+            const apptIndex = isEditing ? parseInt(apptIndexStr, 10) : -1;
+
+            if (isEditing && !hasPermission('appointment_edit')) { alert("Permission denied to edit appointments."); return; }
+            if (!isEditing && !hasPermission('appointment_add')) { alert("Permission denied to add appointments."); return; }
+
+            const patientId = document.getElementById('appointment-patient').value;
+            const datetime = document.getElementById('appointment-datetime').value;
+            const doctor = document.getElementById('appointment-doctor').value;
+            const reason = document.getElementById('appointment-reason').value.trim();
+            const status = document.getElementById('appointment-status').value;
+
+            if (!patientId || !datetime || !doctor || !reason) { alert("Patient, Date/Time, Doctor, and Reason are required."); return; }
+
+            const patientName = patients.find(p=> p.id === patientId)?.name || 'Unknown Patient';
+            const formattedDate = datetime.replace('T', ' '); // Format for display/storage
+
+             const appointmentData = { date: formattedDate, patientId, patient: patientName, doctor, reason, status };
+
+            if (isEditing && apptIndex >= 0 && apptIndex < appointments.length) { // Editing existing
+                appointments[apptIndex] = appointmentData;
+                alert('Appointment updated successfully.');
+            } else { // Adding new
+                appointments.push(appointmentData);
+                 alert('Appointment scheduled successfully.');
+            }
+
+            hideModal('appointment-modal');
+            loadAppointmentData(); // Refresh appointment list
+            loadDashboardData(); // Update dashboard widgets
+
+            if (currentView === 'patient-details' && activePatientId === patientId) {
+                 loadPatientDetails(activePatientId);
+             }
+        }
+
+        function handleSendMessage(event) {
+            event.preventDefault();
+            if (!hasPermission('message_compose')) { alert("Permission denied to send messages."); return; }
+
+            const recipient = document.getElementById('message-recipient').value.trim();
+            const subject = document.getElementById('message-subject').value.trim();
+            const body = document.getElementById('message-body').value.trim();
+
+            if (!recipient || !subject || !body) { alert("Recipient, Subject, and Message Body are required."); return; }
+
+            const newMessage = {
+                id: generateMessageId(),
+                sender: currentUser.name, // Use name from logged-in user object
+                recipient, subject, body,
+                date: new Date().toISOString().slice(0, 16).replace('T', ' '), // Simple timestamp
+                unread: true // New messages are unread
+            };
+            messages.push(newMessage);
+
+            hideModal('message-modal');
+            loadMessageData(); // Refresh message list
+            alert('Message sent (simulated).');
+            loadDashboardData(); // Update dashboard widgets (unread count)
+        }
+
+        function handleSaveUser(event) {
+            event.preventDefault();
+            const usernameEdit = document.getElementById('user-username-edit').value; // Original username if editing
+            const isEditing = !!usernameEdit;
+
+            if (isEditing && !hasPermission('user_edit')) { alert("Permission denied to edit users."); return; }
+            if (!isEditing && !hasPermission('user_add')) { alert("Permission denied to add users."); return; }
+
+            const username = document.getElementById('user-username').value.trim();
+            const name = document.getElementById('user-fullname').value.trim();
+            const password = document.getElementById('user-password').value; // Don't trim password
+            const role = document.getElementById('user-role-select').value;
+            const status = document.getElementById('user-status-select').value;
+
+            if (!username || !name) { alert("Username and Full Name are required."); return; }
+
+             const currentSystemUsername = systemUsers.find(u => u.name === currentUser.name)?.username;
+
+             if (isEditing && usernameEdit === currentSystemUsername && status === 'Inactive') {
+                 alert("You cannot deactivate your own account via this form."); return;
+             }
+
+
+            if (isEditing) { // Editing existing user
+                const userIndex = systemUsers.findIndex(u => u.username === usernameEdit);
+                if (userIndex > -1) {
+                    systemUsers[userIndex].name = name;
+                    systemUsers[userIndex].role = role;
+                    systemUsers[userIndex].status = status;
+
+                     const loginKey = Object.keys(users).find(key => users[key].name === systemUsers[userIndex].name || key === usernameEdit);
+
+                    if (loginKey && users[loginKey]) {
+                         users[loginKey].name = name;
+                         users[loginKey].role = role;
+                         users[loginKey].initials = name.split(' ').map(n=>n[0]).join('').toUpperCase();
+                         if (password) {
+                             users[loginKey].password = password;
+                             alert('User details and password updated successfully.');
+                         } else {
+                            alert('User details updated successfully (password unchanged).');
+                         }
+                         if (currentSystemUsername === usernameEdit) {
+                              currentUser.name = name;
+                              currentUser.role = role;
+                              currentUser.initials = users[loginKey].initials;
+                              initializeUI(); // Re-init to update header display
+                          }
+
+                     } else { alert('Warning: User found in system list but corresponding login entry mismatch or missing.'); }
+
+                 } else { alert('Error: User to edit not found.'); return; }
+
+            } else { // Adding new user
+                if (systemUsers.some(u => u.username === username) || users[username]) {
+                    alert(`Username '${username}' already exists. Please choose a different one.`); return;
+                }
+                if (!password) {
+                     alert(`A password is required for new users.`); return;
+                }
+                const newUserSystem = { username, name, role, status, lastLogin: null };
+                systemUsers.push(newUserSystem);
+
+                users[username] = {
+                    password: password,
+                    name: name,
+                    role: role,
+                    initials: name.split(' ').map(n=>n[0]).join('').toUpperCase()
+                };
+                 alert('New user added successfully.');
+            }
+            hideModal('user-modal');
+            loadUserData(); // Refresh user list
+        }
+
+
+        // --- Update Related Records --- (Identical to previous correct version) ---
+        function updateRelatedRecords(patientId, newName) {
+             appointments.forEach(a => { if(a.patientId === patientId) a.patient = newName; });
+             billingData.forEach(b => { if(b.patientId === patientId) b.patient = newName; });
+             console.log(`Updated related records for patient ID ${patientId} with new name: ${newName}`);
+        }
+
+
+        // --- Delete Handlers --- (Identical to previous correct version) ---
+        function handleDeletePatient(patientId) {
+            if (!hasPermission('patient_delete')) { alert("Permission denied to delete patients."); return; }
+            const patient = patients.find(p => p.id === patientId);
+            if (patient && confirm(`Are you sure you want to delete patient ${patient.name} (ID: ${patientId})?\nThis will also remove their associated appointments and billing records.\nThis action cannot be undone.`)) {
+                patients = patients.filter(p => p.id !== patientId);
+                appointments = appointments.filter(a => a.patientId !== patientId);
+                billingData = billingData.filter(b => b.patientId !== patientId);
+
+                alert(`Patient ${patient.name} deleted.`);
+                loadPatientData(); // Refresh list
+                loadAppointmentData(); // Refresh related lists
+                loadBillingData();
+                loadDashboardData(); // Update counts
+
+                if (currentView === 'patient-details' && activePatientId === patientId) {
+                     navigateTo('patients');
+                 }
+            }
+        }
+        function handleCancelAppointment(index) {
+            if (!hasPermission('appointment_cancel')) { alert("Permission denied to cancel appointments."); return; }
+            if (index >= 0 && index < appointments.length) {
+                const appt = appointments[index];
+                if (appt.status === 'Cancelled') { alert('Appointment is already cancelled.'); return; }
+                if (confirm(`Are you sure you want to cancel the appointment for ${appt.patient} on ${appt.date}?`)) {
+                    appointments[index].status = 'Cancelled';
+                    alert('Appointment cancelled.');
+                    loadAppointmentData(); // Refresh list
+                    loadDashboardData(); // Update counts
+                     if (currentView === 'patient-details' && activePatientId === appt.patientId) {
+                         loadPatientDetails(activePatientId);
+                     }
+                }
+            } else { alert('Error: Invalid appointment index.'); }
+        }
+
+        function handleToggleUserStatus(username) {
+            if (!hasPermission('user_toggle_status')) { alert("Permission denied to change user status."); return; }
+
+             const userToToggle = systemUsers.find(u => u.username === username);
+             const currentSystemUsername = systemUsers.find(u => u.name === currentUser.name)?.username;
+
+             if (userToToggle && userToToggle.username === currentSystemUsername) {
+                 alert("You cannot change your own status using this button."); return;
+             }
+
+
+            const userIndex = systemUsers.findIndex(u => u.username === username);
+            if (userIndex > -1) {
+                const user = systemUsers[userIndex];
+                const newStatus = user.status === 'Active' ? 'Inactive' : 'Active';
+                if (confirm(`Are you sure you want to set user '${username}' to ${newStatus}?`)) {
+                    systemUsers[userIndex].status = newStatus;
+                     alert(`User '${username}' status set to ${newStatus}.`);
+                    loadUserData(); // Refresh list
+                 }
+            } else { alert('Error: User not found.'); }
+        }
+
+
+        // --- Shareable Link Modal Logic (Unchanged) ---
+        function showShareModal() {
+             if (!activePatientId || !hasPermission('share_record')) {
+                alert("Cannot generate link. Ensure a patient record is selected and you have permission."); return;
+             }
+            const patient = patients.find(p => p.id === activePatientId);
+            if (!patient) { alert("Patient data not found."); return; }
+
+            // Simulate generating a token (replace with real backend logic)
+            const simulatedToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+            const shareLink = `${window.location.origin}/view-record?token=${simulatedToken}&patient=${activePatientId}`; // Example URL structure
+
+            shareLinkOutput.textContent = shareLink;
+            copyLinkButton.disabled = false;
+            copyLinkButton.innerHTML = '<i class="fas fa-copy"></i> Copy Link'; // Reset button text
+            showModal('share-modal');
+        }
+
+        function copyShareLink() {
+             if (!shareLinkOutput.textContent || shareLinkOutput.textContent === 'Generating link...' || shareLinkOutput.textContent === 'Copy failed.') {
+                 return; // Don't copy placeholder text
+             }
+            navigator.clipboard.writeText(shareLinkOutput.textContent).then(() => {
+                copyLinkButton.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                setTimeout(() => {
+                     if(shareModal.classList.contains('visible') && copyLinkButton.innerHTML.includes('Copied')) {
+                        copyLinkButton.innerHTML = '<i class="fas fa-copy"></i> Copy Link';
+                     }
+                 }, 2000);
+            }).catch(err => {
+                console.error('Could not copy text: ', err);
+                shareLinkOutput.textContent = 'Copy failed. Please copy manually.';
+                shareLinkOutput.style.color = 'red';
+                copyLinkButton.disabled = true;
+            });
+        }
+
+        // --- Sidebar Toggle for Mobile --- FIX: Updated logic
+        function toggleMobileSidebar() {
+            appSidebar.classList.toggle('open');
+            // Add/remove class on header to control toggle button visibility
+            appHeader.classList.toggle('sidebar-open', appSidebar.classList.contains('open'));
+        }
+
+
+        // --- Theme Switching Logic ---
+        function applyTheme(theme) {
+            if (theme === 'dark') {
+                document.body.classList.add('dark-mode');
+                themeToggle.checked = true;
+            } else {
+                document.body.classList.remove('dark-mode');
+                themeToggle.checked = false;
+            }
+             // Update chart if visible and initialized
+             if (currentView === 'dashboard' && dashboardChartInstance) {
+                 // Delay slightly to ensure CSS variables are fully applied
+                 setTimeout(loadDashboardData, 50);
+             }
+        }
+
+        function handleThemeToggle() {
+            const newTheme = themeToggle.checked ? 'dark' : 'light';
+            applyTheme(newTheme);
+            localStorage.setItem('theme', newTheme); // Save preference
+        }
+
+        function applyInitialTheme() {
+            const savedTheme = localStorage.getItem('theme');
+             // Check for system preference if no saved theme
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const initialTheme = savedTheme || (prefersDark ? 'dark' : 'light');
+            applyTheme(initialTheme);
+
+             // Listener for system preference changes
+             window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+                 // Only apply system change if no user preference is saved
+                 if (!localStorage.getItem('theme')) {
+                     applyTheme(event.matches ? 'dark' : 'light');
+                 }
+             });
+        }
+
+
+        // --- Event Listeners ---
+        loginForm.addEventListener('submit', handleLogin);
+        logoutButton.addEventListener('click', handleLogout);
+        sidebarToggle.addEventListener('click', toggleMobileSidebar); // Mobile toggle listener
+        themeToggle.addEventListener('change', handleThemeToggle); // Theme toggle listener
+
+        // Function to add nav link listeners (called after filtering)
+        function addNavLinkListeners() {
+            navLinks.forEach(link => {
+                link.removeEventListener('click', handleNavLinkClick); // Remove old first
+                link.addEventListener('click', handleNavLinkClick);
+            });
+        }
+        function handleNavLinkClick(e) {
+             e.preventDefault();
+             const targetView = e.currentTarget.dataset.target;
+             if (targetView && targetView !== currentView) {
+                 navigateTo(targetView);
+             } else if (targetView === currentView) {
+                 appContent.scrollTo({ top: 0, behavior: 'smooth' });
+             }
+             // Close sidebar on mobile after clicking a link
+             if (window.innerWidth <= 768 && appSidebar.classList.contains('open')) {
+                 toggleMobileSidebar(); // Use the function to ensure header class is updated
+             }
+         }
+
+
+        // Form Submissions
+        patientForm.addEventListener('submit', handleSavePatient);
+        appointmentForm.addEventListener('submit', handleSaveAppointment);
+        messageForm.addEventListener('submit', handleSendMessage);
+        userForm.addEventListener('submit', handleSaveUser);
+
+        // Share Modal Button
+        copyLinkButton.addEventListener('click', copyShareLink);
+
+        // Patient Search Input
+        document.getElementById('patient-search').addEventListener('input', loadPatientData);
+
+        // Event Delegation for Table Actions, Back Buttons, Print Buttons, Dashboard Widgets, Message Items
+         document.body.addEventListener('click', function(event) {
+             const target = event.target;
+             const targetButton = target.closest('button'); // Find closest button ancestor
+
+              // Close mobile sidebar if clicking outside it while it's open
+              if (appSidebar.classList.contains('open') && !appSidebar.contains(target) && !sidebarToggle.contains(target) && target !== sidebarToggle ) {
+                  toggleMobileSidebar(); // Use function to ensure header class updates
+              }
+
+             // Modal Close Buttons (Check specifically for the button class)
+             if (target.matches('.modal-close-button') || target.closest('.modal-close-button')) {
+                 const modal = target.closest('.modal');
+                 if (modal) { hideModal(modal.id); }
+                 return; // Stop further processing
+             }
+              // Clicking outside modal *content* (but on the modal background)
+              if (target.matches('.modal.visible') && !target.querySelector('.modal-content')?.contains(target) ) {
+                  hideModal(target.id);
+                  return; // Stop further processing
+              }
+
+
+             // Dashboard Widget Clicks
+             const widget = target.closest('.clickable-widget[data-target]');
+             if (widget) {
+                 const targetSectionId = widget.dataset.target;
+                 if (targetSectionId) { navigateTo(targetSectionId); }
+                 return; // Stop further processing
+             }
+
+             // Check if the click was on any button *after* checking modals/widgets
+             if (targetButton) {
+                 const button = targetButton; // Use the found button
+
+                 // Back to List Button
+                 if (button.matches('.back-to-list[data-target]')) {
+                     navigateTo(button.dataset.target); return;
+                 }
+
+                 // --- Patient Actions ---
+                 if (button.matches('.btn-view[data-patient-id]')) {
+                     navigateTo('patient-details', { patientId: button.dataset.patientId }); return;
+                 }
+                 if (button.matches('.btn-edit[data-patient-id]')) {
+                     const patient = patients.find(p => p.id === button.dataset.patientId);
+                     if(patient && hasPermission('patient_edit')) showModal('patient-modal', 'edit', patient);
+                     else if (!hasPermission('patient_edit')) alert("Permission denied.");
+                     return;
+                 }
+                 if (button.matches('.btn-delete[data-patient-id]')) {
+                     handleDeletePatient(button.dataset.patientId); return;
+                 }
+                 if (button.matches('#add-patient-button')) {
+                      if(hasPermission('patient_add')) showModal('patient-modal', 'add'); else alert('Permission Denied'); return;
+                  }
+
+
+                 // --- Appointment Actions ---
+                 if (button.matches('.btn-edit[data-appointment-index]')) {
+                     if(hasPermission('appointment_edit')) showModal('appointment-modal', 'edit', button.dataset.appointmentIndex); else alert('Permission Denied'); return;
+                 }
+                 if (button.matches('.btn-cancel[data-appointment-index]')) {
+                     handleCancelAppointment(parseInt(button.dataset.appointmentIndex, 10)); return;
+                 }
+                 if (button.matches('#add-appointment-button')) {
+                      if(hasPermission('appointment_add')) showModal('appointment-modal', 'add'); else alert('Permission Denied'); return;
+                  }
+
+                 // --- Message Actions ---
+                  if (button.matches('#compose-message-button')) {
+                      if(hasPermission('message_compose')) showModal('message-modal', 'add'); else alert('Permission Denied'); return;
+                  }
+
+
+                 // --- User Actions ---
+                 if (button.matches('.btn-edit[data-user-username]')) {
+                     if(hasPermission('user_edit')) showModal('user-modal', 'edit', button.dataset.userUsername); else alert('Permission Denied'); return;
+                 }
+                 if (button.matches('.btn-delete[data-user-username]') || button.matches('.btn-activate[data-user-username]')) {
+                     handleToggleUserStatus(button.dataset.userUsername); return;
+                 }
+                 if (button.matches('#add-user-button')) {
+                      if(hasPermission('user_add')) showModal('user-modal', 'add'); else alert('Permission Denied'); return;
+                  }
+
+                 // --- Print Action ---
+                 if (button.matches('.btn-print-tab[data-print-target]')) {
+                     if (!hasPermission('print_record')) { alert("Permission denied to print records."); return; }
+                     const targetTabId = button.dataset.printTarget;
+                     const targetTabContent = document.getElementById(targetTabId);
+                     if (targetTabContent) {
+                         document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('printable-section'));
+                         targetTabContent.classList.add('printable-section');
+                         window.print();
+                         // Remove class slightly after print command to ensure it's applied during print process
+                         setTimeout(() => targetTabContent.classList.remove('printable-section'), 500);
+                     } else { console.error("Print target element not found:", targetTabId); }
+                     return;
+                 }
+
+             } // End of button checks
+
+             // Message List Item Clicks (if not handled by specific button inside)
+             const messageItem = target.closest('.message-item[data-message-id]');
+             if (messageItem && !targetButton) { // Ensure click wasn't on a button inside the item
+                  if(hasPermission('message_view')) showMessageDetail(parseInt(messageItem.dataset.messageId, 10));
+                  else alert("Permission denied to view messages.");
+                  return;
+              }
+
+         }); // End of body click listener
+
+
+         // --- Global Key Listener ---
+         document.addEventListener('keydown', function(event) {
+             if (event.key === "Escape") {
+                 const visibleModals = document.querySelectorAll('.modal.visible');
+                 if (visibleModals.length > 0) {
+                     hideModal(visibleModals[visibleModals.length - 1].id);
+                 } else if (appSidebar.classList.contains('open')) {
+                     // Close sidebar if open and no modals are open
+                     toggleMobileSidebar(); // Use function
+                 }
+             }
+         });
+
+
+        // --- Initial Check & Theme Setup ---
+        applyInitialTheme(); // Apply theme on initial load
+
+    </script>
+
+</body>
+</html>
