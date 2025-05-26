@@ -74,7 +74,7 @@
             /* Sidebar stays dark */
             /* --background-sidebar-start: #1a202c; */
             /* --background-sidebar-end: #2c3e50; */
-            --text-light: #1a202c; /* Dark text for light elements if needed */
+            --text-light: #1a202c; /* Dark text for light elements if needed (this one might be tricky, was #f7fafc) */
             --text-dark: #f7fafc; /* Light text for dark background */
             --text-muted: #a0aec0; /* Gray 500 */
             --text-sidebar: #ecf0f1; /* Unchanged */
@@ -289,7 +289,7 @@
         .sidebar-logo {
             font-family: var(--font-display);
             font-size: 1.6rem;
-            color: var(--text-light); /* Use light text var */
+            color: var(--text-sidebar); /* UPDATED: Use var for text on dark sidebar bg */
             margin-bottom: 0.5rem;
             display: flex;
             align-items: center;
@@ -378,7 +378,6 @@
             background-color: var(--background-header); /* Use var */
             padding: 0.8rem 2rem;
             display: flex;
-            /* justify-content: space-between; -- Removed for new layout */
             align-items: center;
             box-shadow: 0 2px 10px var(--shadow-color-light); /* Use var */
             height: 70px; /* Fixed height */
@@ -400,18 +399,16 @@
              margin-right: 10px;
          }
 
-        /* Theme toggle moved - styles below */
 
         .header-user-info {
             display: flex;
             align-items: center;
-            gap: 0.8rem; /* Add gap for theme toggle */
+            gap: 0.8rem; /* Add gap for theme toggle and other items */
             margin-left: auto; /* Push user info to the right */
         }
 
         .user-details {
             text-align: right;
-            /* margin-right: 1rem; Removed, using gap */
         }
 
         .user-name {
@@ -444,16 +441,13 @@
             justify-content: center;
             align-items: center;
             font-weight: 600;
-            /* margin-right: 1rem; Removed, using gap */
         }
 
         /* --- Theme Toggle Switch --- */
         .theme-switch-wrapper {
             display: flex;
             align-items: center;
-            /* margin-left: 1rem; /* Add space before user info */
-            /* margin-right: 1rem; /* Optional space before user info */
-            /* Removed specific margins, rely on header gap */
+            /* Margins controlled by gap in .header-user-info */
         }
         .theme-switch {
             display: inline-block;
@@ -691,6 +685,7 @@
         .btn-share { color: var(--admin-accent); }
         .btn-cancel { color: var(--danger-color); } /* For appointments */
         .btn-activate { color: var(--success-color); } /* For users */
+        .btn-record-payment { color: var(--staff-accent); } /* For billing */
 
 
         /* Button Styling */
@@ -769,6 +764,11 @@
             min-height: 100px;
             resize: vertical;
          }
+         .app-form p { /* For displaying static info in forms like payment modal */
+            padding: 0.7rem 0;
+            color: var(--text-dark);
+         }
+
 
         .app-form input:focus,
         .app-form select:focus,
@@ -1328,21 +1328,20 @@
 
                 <div class="header-title" id="page-title"><i class="fas fa-tachometer-alt"></i> Dashboard</div>
 
-                 <!-- Theme Toggle Switch -->
-                 <div class="theme-switch-wrapper no-print">
-                    <label class="theme-switch" for="theme-checkbox" title="Toggle Light/Dark Theme">
-                        <input type="checkbox" id="theme-checkbox" />
-                        <div class="theme-slider"></div>
-                    </label>
-                </div>
-
                 <div class="header-user-info">
+                    <!-- Theme Toggle Switch MOVED HERE -->
+                    <div class="theme-switch-wrapper no-print">
+                       <label class="theme-switch" for="theme-checkbox" title="Toggle Light/Dark Theme">
+                           <input type="checkbox" id="theme-checkbox" />
+                           <div class="theme-slider"></div>
+                       </label>
+                   </div>
+
                     <div class="user-avatar" id="user-initials"></div>
                     <div class="user-details">
                         <span class="user-name" id="user-name-display"></span>
                         <span class="user-role" id="user-role-display"></span>
                     </div>
-                    <!-- Theme Toggle Moved -->
                     <button id="logout-button" class="logout-button no-print" title="Logout">
                         <i class="fas fa-sign-out-alt"></i>
                     </button>
@@ -1693,10 +1692,44 @@
         </div>
     </div>
 
+    <!-- Payment Record Modal -->
+    <div id="payment-modal" class="modal no-print">
+        <div class="modal-content">
+            <button class="modal-close-button no-print" onclick="hideModal('payment-modal')">&times;</button>
+            <h3 id="payment-modal-title">Record Payment</h3>
+            <form id="payment-form" class="app-form">
+                <input type="hidden" id="payment-invoice-id">
+                <div class="form-group">
+                    <label>Invoice ID:</label>
+                    <p id="payment-invoice-id-display" style="font-weight: bold;"></p>
+                </div>
+                <div class="form-group">
+                    <label>Patient:</label>
+                    <p id="payment-patient-name-display"></p>
+                </div>
+                <div class="form-group">
+                    <label>Amount Due:</label>
+                    <p id="payment-amount-due-display" style="font-weight: bold;"></p>
+                </div>
+                <div class="form-group">
+                    <label for="payment-amount-received">Payment Amount Received</label>
+                    <input type="number" id="payment-amount-received" step="0.01" min="0.01" required>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="btn btn-secondary" onclick="hideModal('payment-modal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Record Payment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 
     <script>
         // --- Polyfills & Basic Setup ---
         document.getElementById('current-year').textContent = new Date().getFullYear();
+
+        // --- LocalStorage Key for Patients ---
+        const localStorageKeyPatients = 'mediFlowNexusPatients';
 
         // --- Simulated Data (Use let for arrays that will be modified) ---
         const users = { // Credentials for login
@@ -1706,13 +1739,12 @@
             'dr.house': { password: 'password', name: 'Dr. Gregory House', role: 'doctor', initials: 'GH'}
         };
 
-        let patients = [
+        const initialDefaultPatients = [
             { id: 'P001', name: 'Alice Wonderland', dob: '1985-03-15', contact: 'alice@example.com', lastVisit: '2023-10-20', medicalHistory: 'Mild asthma, seasonal allergies.\nFollow up in 6 months.', billing: [{ id: 'INV001', date: '2023-10-20', amount: 150, status: 'Paid' }] },
             { id: 'P002', name: 'Bob The Builder', dob: '1978-07-22', contact: 'bob@example.com', lastVisit: '2023-09-01', medicalHistory: 'Hypertension (controlled), previous knee surgery (2019).\nPrescribed Lisinopril 10mg daily.', billing: [{ id: 'INV002', date: '2023-09-01', amount: 120, status: 'Pending' }] },
             { id: 'P003', name: 'Charlie Chaplin', dob: '1992-11-30', contact: 'charlie@example.com', lastVisit: '2023-11-05', medicalHistory: 'No significant history.', billing: [{ id: 'INV003', date: '2023-11-05', amount: 85, status: 'Paid' }] }
         ];
-         // Add patientId to billing records associated with patients
-         patients.forEach(p => { if (p.billing) { p.billing.forEach(b => b.patientId = p.id); }});
+        let patients = []; // Will be populated from localStorage or default
 
 
         let appointments = [
@@ -1765,7 +1797,6 @@
         const userInitials = document.getElementById('user-initials');
         const themeToggle = document.getElementById('theme-checkbox'); // Theme toggle checkbox
         const logoutButton = document.getElementById('logout-button');
-        // navLinks needs to be queried *after* potential filtering in initializeUI
         let navLinks = []; // Initialize as empty, query later
         const contentSections = document.querySelectorAll('.content-section');
         const patientTableBody = document.querySelector('#patient-table tbody');
@@ -1777,11 +1808,10 @@
         const patientDetailsSection = document.getElementById('patient-details-section');
         const messageDetailView = document.getElementById('message-detail-view');
 
-        // Store template menu items
         const templateMenuItems = Array.from(sidebarMenuList.querySelectorAll('li[data-template-role]'));
 
 
-        // Modal Elements (references remain the same)
+        // Modal Elements
         const shareModal = document.getElementById('share-modal');
         const shareLinkOutput = document.getElementById('share-link-output');
         const copyLinkButton = document.getElementById('copy-link-button');
@@ -1793,17 +1823,55 @@
         const messageForm = document.getElementById('message-form');
         const userModal = document.getElementById('user-modal');
         const userForm = document.getElementById('user-form');
+        const paymentModal = document.getElementById('payment-modal'); // New Modal
+        const paymentForm = document.getElementById('payment-form');   // New Form
+
 
         // --- Helper Functions ---
         function generatePatientId() { return 'P' + String(Date.now()).slice(-4); }
         function generateMessageId() { return messages.length > 0 ? Math.max(...messages.map(m => m.id)) + 1 : 1; }
         function generateInvoiceId() { return 'INV' + String(Date.now()).slice(-4); }
 
+        // --- LocalStorage Functions for Patients ---
+        function loadPatientsFromStorage() {
+            const storedPatients = localStorage.getItem(localStorageKeyPatients);
+            if (storedPatients) {
+                try {
+                    const parsedPatients = JSON.parse(storedPatients);
+                    if (Array.isArray(parsedPatients)) {
+                        patients = parsedPatients;
+                    } else {
+                        console.warn("Stored patient data is not an array, using default.");
+                        patients = JSON.parse(JSON.stringify(initialDefaultPatients)); // Deep copy default
+                    }
+                } catch (e) {
+                    console.error("Error parsing patients from localStorage:", e);
+                    patients = JSON.parse(JSON.stringify(initialDefaultPatients)); // Deep copy default
+                }
+            } else {
+                patients = JSON.parse(JSON.stringify(initialDefaultPatients)); // Deep copy default
+            }
+            // Ensure patientId is set in nested billing objects after loading
+            patients.forEach(p => {
+                if (p.billing && Array.isArray(p.billing)) {
+                    p.billing.forEach(b => b.patientId = p.id);
+                } else {
+                    p.billing = []; // Ensure billing is an array
+                }
+            });
+        }
+
+        function savePatientsToStorage() {
+            localStorage.setItem(localStorageKeyPatients, JSON.stringify(patients));
+        }
+        // Load patients at script start
+        loadPatientsFromStorage();
+
+
         // --- Role Check Function ---
         function hasPermission(action) {
             if (!currentUser) return false;
             const role = currentUser.role;
-            // Define permissions map (action -> array of allowed roles)
             const permissions = {
                 'patient_add': ['admin', 'staff'],
                 'patient_edit': ['admin', 'doctor', 'staff'],
@@ -1818,32 +1886,30 @@
                 'user_edit': ['admin'],
                 'user_toggle_status': ['admin'],
                 'billing_view': ['admin', 'staff'],
+                'billing_record_payment': ['admin', 'staff'], // New permission
                 'settings_view': ['admin'],
                 'dashboard_view': ['admin', 'doctor', 'staff'],
-                // Section view permissions (must match data-target values)
                 'view_dashboard': ['admin', 'doctor', 'staff'],
                 'view_patients': ['admin', 'doctor', 'staff'],
                 'view_appointments': ['admin', 'doctor', 'staff'],
                 'view_messages': ['admin', 'doctor', 'staff'],
-                'view_billing': ['admin', 'staff'], // Billing only for admin & staff
-                'view_user-management': ['admin'], // Admin only
-                'view_settings': ['admin'], // Admin only
-                // Other specific actions
+                'view_billing': ['admin', 'staff'],
+                'view_user-management': ['admin'],
+                'view_settings': ['admin'],
                 'share_record': ['admin', 'doctor', 'staff'],
                 'print_record': ['admin', 'doctor', 'staff'],
             };
-            // console.log(`Checking permission for ${action}, role: ${role}. Result: ${permissions[action] && permissions[action].includes(role)}`); // Debugging log
             return permissions[action] && permissions[action].includes(role);
         }
 
-        // --- Modal Handling (Unchanged) ---
+        // --- Modal Handling ---
         function showModal(modalId, mode = 'add', data = null) {
             const modal = document.getElementById(modalId);
             if (!modal) return;
             const form = modal.querySelector('form');
             const titleElement = modal.querySelector('h3');
 
-            if(form) form.reset(); // Reset form if it exists
+            if(form) form.reset();
 
             if (modalId === 'patient-modal') {
                  document.getElementById('patient-id-edit').value = '';
@@ -1865,17 +1931,15 @@
                      option.value = p.id; option.textContent = `${p.name} (ID: ${p.id})`;
                      patientSelect.appendChild(option);
                  });
-                 if (mode === 'edit' && data !== null) { // data is the index
+                 if (mode === 'edit' && data !== null) {
                      const appt = appointments[data];
                      if(appt){
                         document.getElementById('appointment-index-edit').value = data;
                         patientSelect.value = appt.patientId || '';
-                        // Safely format datetime-local value
                         try {
                             if (appt.date) {
                                 const dateObj = new Date(appt.date.replace(' ', 'T'));
                                 if (!isNaN(dateObj)) {
-                                    // Format YYYY-MM-DDTHH:mm
                                     const year = dateObj.getFullYear();
                                     const month = String(dateObj.getMonth() + 1).padStart(2, '0');
                                     const day = String(dateObj.getDate()).padStart(2, '0');
@@ -1895,20 +1959,16 @@
                  }
             } else if (modalId === 'message-modal') {
                  titleElement.textContent = 'Compose New Secure Message';
-                 // Optionally pre-fill recipient if replying later
             } else if (modalId === 'user-modal') {
                  document.getElementById('user-username-edit').value = '';
                  const usernameInput = document.getElementById('user-username');
                  titleElement.textContent = (mode === 'edit') ? 'Edit User' : 'Add New User';
                  usernameInput.readOnly = (mode === 'edit');
-                 usernameInput.style.backgroundColor = (mode === 'edit') ? 'var(--background-table-header)' : 'var(--background-card)'; // Visual cue using vars
-                 document.getElementById('user-password').value = ''; // Clear password field always
+                 usernameInput.style.backgroundColor = (mode === 'edit') ? 'var(--background-table-header)' : 'var(--background-card)';
+                 document.getElementById('user-password').value = '';
                  document.getElementById('user-password').placeholder = (mode === 'edit') ? 'Leave blank to keep existing password' : 'Enter new password';
-                 // Make password required only for 'add' mode
                  document.getElementById('user-password').required = (mode === 'add');
-
-
-                 if (mode === 'edit' && data) { // data is username
+                 if (mode === 'edit' && data) {
                      const user = systemUsers.find(u => u.username === data);
                      if(user) {
                         document.getElementById('user-username-edit').value = user.username;
@@ -1918,18 +1978,24 @@
                         document.getElementById('user-status-select').value = user.status;
                      }
                  }
-            } else if (modalId === 'share-modal') {
-                 // Logic is handled in showShareModal directly
+            } else if (modalId === 'payment-modal' && data) { // For 'record' mode with payment data
+                titleElement.textContent = 'Record Payment';
+                document.getElementById('payment-invoice-id').value = data.invoiceId;
+                document.getElementById('payment-invoice-id-display').textContent = data.invoiceId;
+                document.getElementById('payment-patient-name-display').textContent = data.patientName;
+                const amountDue = parseFloat(data.amountDue);
+                document.getElementById('payment-amount-due-display').textContent = `$${amountDue.toFixed(2)}`;
+                document.getElementById('payment-amount-received').value = amountDue.toFixed(2); // Pre-fill
+                document.getElementById('payment-amount-received').max = amountDue.toFixed(2); // Prevent overpayment in this simple setup
             }
             modal.classList.add('visible');
-            document.body.style.overflow = 'hidden'; // Prevent body scroll when modal is open
+            document.body.style.overflow = 'hidden';
         }
 
         function hideModal(modalId) {
             const modal = document.getElementById(modalId);
             if (modal) {
                  modal.classList.remove('visible');
-                 // Check if any other modals are visible before restoring body scroll
                 const anyVisibleModals = document.querySelectorAll('.modal.visible').length > 0;
                 if (!anyVisibleModals) {
                     document.body.style.overflow = '';
@@ -1939,215 +2005,160 @@
 
         // --- Functions ---
 
-        // Login Handler (Unchanged)
         function handleLogin(event) {
             event.preventDefault();
             loginError.textContent = '';
             const loginButton = loginForm.querySelector('.login-button');
-            loginButton.disabled = true; // Disable button during check
+            loginButton.disabled = true;
 
             const username = loginForm.username.value;
             const password = loginForm.password.value;
             const role = loginForm.role.value;
-            const user = users[username]; // Get potential user from login credentials
-            const systemUser = systemUsers.find(su => su.username === username); // Get user details from system list
+            const user = users[username];
+            const systemUser = systemUsers.find(su => su.username === username);
 
-            // Simulate network delay
             setTimeout(() => {
                 if (user && user.password === password && user.role === role && systemUser) {
                     if (systemUser.status !== 'Active') {
                         loginError.textContent = 'Your account is inactive. Please contact an administrator.';
-                        loginButton.disabled = false; // Re-enable button
+                        loginButton.disabled = false;
                     } else {
-                        // SUCCESSFUL LOGIN
-                        currentUser = user; // Set the current logged-in user
-                        loginWrapper.classList.add('hidden'); // Start fade out login screen
-
+                        currentUser = user;
+                        loginWrapper.classList.add('hidden');
                         setTimeout(() => {
-                            loginWrapper.style.display = 'none'; // Hide after fade
-                            mainApp.style.display = 'flex'; // Set display before adding class
+                            loginWrapper.style.display = 'none';
+                            mainApp.style.display = 'flex';
                             setTimeout(() => {
-                                mainApp.classList.add('visible'); // Fade in main app
+                                mainApp.classList.add('visible');
                                 initializeUI();
-                                navigateTo('dashboard'); // Go to dashboard after login
-                            }, 50); // Short delay for display change to register
-                        }, 500); // Match CSS transition duration
+                                navigateTo('dashboard');
+                            }, 50);
+                        }, 500);
                     }
                 } else {
                     loginError.textContent = 'Invalid credentials or role selection.';
-                    loginButton.disabled = false; // Re-enable button
+                    loginButton.disabled = false;
                 }
-            }, 500); // 0.5 second delay
+            }, 500);
         }
 
-        // Logout Handler (Unchanged)
         function handleLogout() {
             currentUser = null;
-            mainApp.classList.remove('visible'); // Start fade out main app
-            appSidebar.classList.remove('open'); // Ensure sidebar is closed on mobile
-            appHeader.classList.remove('sidebar-open'); // Ensure header class is removed
-
+            mainApp.classList.remove('visible');
+            appSidebar.classList.remove('open');
+            appHeader.classList.remove('sidebar-open');
             setTimeout(() => {
-                 mainApp.style.display = 'none'; // Hide after fade
-                 loginWrapper.style.display = 'flex'; // Show login wrapper
-                 loginWrapper.classList.remove('hidden'); // Fade in login screen
+                 mainApp.style.display = 'none';
+                 loginWrapper.style.display = 'flex';
+                 loginWrapper.classList.remove('hidden');
                  loginForm.reset();
                  loginError.textContent = '';
                  const loginButton = loginForm.querySelector('.login-button');
-                 loginButton.disabled = false; // Ensure login button is enabled
-
-                 // Reset UI elements that might hold old data
+                 loginButton.disabled = false;
                  userNameDisplay.textContent = '';
                  userRoleDisplay.textContent = '';
                  userInitials.textContent = '';
                  pageTitle.innerHTML = '';
-                 dashboardWidgets.innerHTML = ''; // Clear dynamic content
-                 if (dashboardChartInstance) { dashboardChartInstance.destroy(); dashboardChartInstance = null; } // Destroy chart
-                 sidebarMenuList.innerHTML = ''; // Clear filtered menu
-
-            }, 500); // Match CSS transition duration
+                 dashboardWidgets.innerHTML = '';
+                 if (dashboardChartInstance) { dashboardChartInstance.destroy(); dashboardChartInstance = null; }
+                 sidebarMenuList.innerHTML = '';
+            }, 500);
         }
 
-        // ======================================================
-        // ========= UPDATED initializeUI Function ==============
-        // ======================================================
         function initializeUI() {
              if (!currentUser) return;
-
             userNameDisplay.textContent = currentUser.name;
             userRoleDisplay.textContent = currentUser.role.charAt(0).toUpperCase() + currentUser.role.slice(1);
             userRoleDisplay.className = `user-role ${currentUser.role}`;
             userInitials.textContent = currentUser.initials || currentUser.name.split(' ').map(n=>n[0]).join('').toUpperCase();
 
-            // --- Sidebar Menu Filtering (FIXED) ---
-            sidebarMenuList.innerHTML = ''; // Clear the list first
-
-             // Use the stored template items
+            sidebarMenuList.innerHTML = '';
             templateMenuItems.forEach(templateItem => {
                 const link = templateItem.querySelector('a.nav-link[data-target]');
                 if (link) {
                     const targetView = link.dataset.target;
                     const viewPermission = `view_${targetView.replace('-', '_')}`;
-
-                    // Check if user has permission for this view
                     if (hasPermission(viewPermission)) {
-                        // Clone the template item to add to the list
                         const newItem = templateItem.cloneNode(true);
-                        newItem.style.display = ''; // Make it visible
-                        sidebarMenuList.appendChild(newItem); // Add the item to the list
+                        newItem.style.display = '';
+                        sidebarMenuList.appendChild(newItem);
                     }
                  }
             });
-
-            // Update the navLinks NodeList reference *after* filtering and adding
             navLinks = sidebarMenuList.querySelectorAll('.nav-link');
-            addNavLinkListeners(); // Re-attach listeners to the filtered links
+            addNavLinkListeners();
 
-            // --- Filter Content Sections (Still relevant) ---
-             contentSections.forEach(section => {
+            contentSections.forEach(section => {
                  const sectionId = section.id.replace('-section', '');
                  const correspondingLink = sidebarMenuList.querySelector(`.nav-link[data-target="${sectionId}"]`);
-                 if (!correspondingLink && !section.classList.contains('active')) {
-                      // Section is inaccessible and not active, can leave it hidden
-                 }
-             });
+            });
 
-
-            // --- Disable Action Buttons based on Permissions ---
             const addPatientBtn = document.getElementById('add-patient-button'); if(addPatientBtn) addPatientBtn.disabled = !hasPermission('patient_add');
             const addApptBtn = document.getElementById('add-appointment-button'); if(addApptBtn) addApptBtn.disabled = !hasPermission('appointment_add');
             const composeMsgBtn = document.getElementById('compose-message-button'); if(composeMsgBtn) composeMsgBtn.disabled = !hasPermission('message_compose');
             const addUserBtn = document.getElementById('add-user-button'); if(addUserBtn) addUserBtn.disabled = !hasPermission('user_add');
 
-            // Load initial data for the default view (Dashboard) only if permitted
             if (hasPermission('view_dashboard')) {
-                 // Check if dashboard is the current active view (or if no view is active yet)
-                 // This prevents unnecessarily reloading dashboard if user logs in while another section was hypothetically active
                  const activeSection = document.querySelector('.content-section.active');
                  if (!activeSection || activeSection.id === 'dashboard-section') {
                      loadDashboardData();
-                     navigateTo('dashboard'); // Ensure dashboard is set as active view/link
+                     navigateTo('dashboard');
                  } else {
-                     // If another section is somehow active, load its data instead
                      const currentActiveId = activeSection.id.replace('-section', '');
                      navigateTo(currentActiveId);
                  }
             } else {
-                // If user cannot view dashboard, try navigating to the first available section
                 const firstAllowedLink = sidebarMenuList.querySelector('.nav-link');
                 if (firstAllowedLink) {
                     navigateTo(firstAllowedLink.dataset.target);
                 } else {
-                    // Handle case where user has NO permissions
                     appContent.innerHTML = '<div class="card"><p>Error: No accessible sections found for your role.</p></div>';
                     pageTitle.innerHTML = '<i class="fas fa-ban"></i> No Access';
                 }
             }
-            // Apply initial theme (already handled by dedicated function `applyInitialTheme`)
         }
-        // ======================================================
-        // ========= END of UPDATED initializeUI Function =======
-        // ======================================================
 
-
-        // Navigation Handler (Unchanged - permission checks are robust)
         function navigateTo(targetViewId, params = null) {
-             // Close any open modals first
              document.querySelectorAll('.modal.visible').forEach(modal => hideModal(modal.id));
-             // Close mobile sidebar if open
              if (appSidebar.classList.contains('open')) {
-                toggleMobileSidebar(); // Use the function to ensure header class is also updated
+                toggleMobileSidebar();
              }
-
-            // Permission Check (Crucial)
             const viewPermission = `view_${targetViewId.replace('-', '_')}`;
-            // Exception: patient-details requires view_patients permission
             const effectivePermission = (targetViewId === 'patient-details') ? 'view_patients' : viewPermission;
 
             if (!hasPermission(effectivePermission)) {
                  console.warn(`Access Denied: Role '${currentUser.role}' cannot view section '${targetViewId}'. Required permission: '${effectivePermission}'`);
                  alert("Access Denied: You do not have permission to view this section.");
-                  // Redirect to dashboard if accessible, otherwise show error in content
                   if (currentView !== 'dashboard' && hasPermission('view_dashboard')) {
                       navigateTo('dashboard');
                   } else {
                        appContent.innerHTML = `<div class="card"><p>Access Denied: You do not have permission to view '${targetViewId}'.</p></div>`;
-                       // Clear active state from links
                        navLinks.forEach(link => link.classList.remove('active'));
                        pageTitle.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Access Denied`;
                   }
-                 return; // Stop navigation
+                 return;
              }
 
-            // Update Active Section
             contentSections.forEach(section => section.classList.remove('active'));
             const targetSection = document.getElementById(`${targetViewId}-section`);
 
             if (targetSection) {
                 targetSection.classList.add('active');
                 currentView = targetViewId;
-
-                // Update Active Link and Page Title
                 navLinks.forEach(link => link.classList.remove('active'));
-                const activeLink = sidebarMenuList.querySelector(`.nav-link[data-target="${targetViewId}"]`); // Query filtered list
+                const activeLink = sidebarMenuList.querySelector(`.nav-link[data-target="${targetViewId}"]`);
                  if(activeLink) {
-                     // Use innerHTML of the span within the link for title text
                      const spanContent = activeLink.querySelector('span')?.innerHTML || '';
                      const iconHTML = activeLink.querySelector('i')?.outerHTML || '';
-                     pageTitle.innerHTML = `${iconHTML} ${spanContent}`; // Combine icon and text
+                     pageTitle.innerHTML = `${iconHTML} ${spanContent}`;
                      activeLink.classList.add('active');
                  } else if (targetViewId === 'patient-details') {
-                    // Title is set dynamically within loadPatientDetails
+                    // Title set in loadPatientDetails
                  } else {
-                    // Fallback title (should ideally not happen if all sections have links)
                      const capitalized = targetViewId.charAt(0).toUpperCase() + targetViewId.slice(1).replace('-', ' ');
                      pageTitle.innerHTML = `<i class="fas fa-question-circle"></i> ${capitalized}`;
                  }
-
-                // Scroll content area to top
                 appContent.scrollTop = 0;
-
-                // Load Data for the Target Section
                 switch(targetViewId) {
                     case 'dashboard': loadDashboardData(); break;
                     case 'patients': loadPatientData(); break;
@@ -2156,24 +2167,18 @@
                     case 'messages': loadMessageData(); break;
                     case 'billing': loadBillingData(); break;
                     case 'user-management': loadUserData(); break;
-                    case 'settings': /* No dynamic data load needed currently */ break;
+                    case 'settings': break;
                     default: console.warn("Navigation target section has no specific data load function:", targetViewId);
                 }
-
             } else {
                 console.error("Navigation target section not found:", `${targetViewId}-section`);
-                 if (hasPermission('view_dashboard')) { navigateTo('dashboard'); } // Redirect to dashboard on error
+                 if (hasPermission('view_dashboard')) { navigateTo('dashboard'); }
             }
         }
 
-        // --- Data Loading Functions ---
-
-        // Load Dashboard Data (Added comment about static data)
         function loadDashboardData() {
             if (!hasPermission('view_dashboard')) return;
-            dashboardWidgets.innerHTML = ''; // Clear previous widgets
-
-             // Calculate dynamic counts
+            dashboardWidgets.innerHTML = '';
              const upcomingAppointmentsCount = appointments.filter(a => {
                  try { return new Date(a.date.replace(' ', 'T')) >= new Date() && a.status !== 'Cancelled' && a.status !== 'Completed'; }
                  catch(e) { console.warn(`Invalid date format for appointment: ${a.date}`); return false; }
@@ -2187,9 +2192,8 @@
                  { permission: 'view_messages', target: 'messages', icon: 'fa-envelope-open-text', title: `${unreadMessagesCount} Unread Messages`, text: 'Require your attention', colorClass: 'messages' },
                  { permission: 'view_billing', target: 'billing', icon: 'fa-dollar-sign', title: `$${totalRevenue.toFixed(2)} Revenue (Paid)`, text: 'Total collected revenue', colorClass: 'revenue' }
              ];
-
              widgetDefinitions.forEach(widgetDef => {
-                 if (hasPermission(widgetDef.permission)) { // Only show widget if target section is viewable
+                 if (hasPermission(widgetDef.permission)) {
                      const widgetDiv = document.createElement('div');
                      widgetDiv.className = 'card widget clickable-widget';
                      widgetDiv.setAttribute('data-target', widgetDef.target);
@@ -2198,27 +2202,18 @@
                      dashboardWidgets.appendChild(widgetDiv);
                  }
             });
-
-            // Chart.js: Appointment Overview
             const chartCanvas = document.getElementById('appointmentChart');
             if (chartCanvas) {
                 const ctx = chartCanvas.getContext('2d');
-                 // Destroy previous chart instance if it exists BEFORE getting computed styles
                 if (dashboardChartInstance) {
                     dashboardChartInstance.destroy();
                 }
-
-                // Get colors dynamically based on current theme for chart AFTER potential theme change
                 const computedStyle = getComputedStyle(document.documentElement);
                 const primaryColorValue = computedStyle.getPropertyValue('--primary-color').trim();
                 const gridColorValue = computedStyle.getPropertyValue('--border-color').trim();
                 const textColorValue = computedStyle.getPropertyValue('--text-muted').trim();
-
-                // NOTE: Using static data for demonstration purposes.
                 const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-                const data = [5, 8, 6, 10, 7, 4, 6]; // Example static data for a week
-
-                // Create the new chart instance
+                const data = [5, 8, 6, 10, 7, 4, 6];
                 dashboardChartInstance = new Chart(ctx, {
                     type: 'line',
                     data: {
@@ -2226,60 +2221,40 @@
                         datasets: [{
                              label: 'Appointments Scheduled (Demo)',
                              data: data,
-                             borderColor: primaryColorValue || '#0a7f9c', // Fallback
-                             // Use a very transparent version of primary for fill
-                             backgroundColor: primaryColorValue ? primaryColorValue + '1A' : 'rgba(10, 127, 156, 0.1)', // Add alpha hex or fallback
+                             borderColor: primaryColorValue || '#0a7f9c',
+                             backgroundColor: primaryColorValue ? primaryColorValue + '1A' : 'rgba(10, 127, 156, 0.1)',
                              fill: true,
                              tension: 0.4 }]
                     },
                     options: {
                         responsive: true,
-                        maintainAspectRatio: false, // Keep this false with fixed height canvas
+                        maintainAspectRatio: false,
                         scales: {
-                            y: {
-                                beginAtZero: true,
-                                suggestedMax: Math.max(...data) + 2,
-                                grid: { color: gridColorValue },
-                                ticks: { color: textColorValue }
-                            },
-                            x: {
-                                grid: { color: gridColorValue },
-                                ticks: { color: textColorValue }
-                           }
+                            y: { beginAtZero: true, suggestedMax: Math.max(...data) + 2, grid: { color: gridColorValue }, ticks: { color: textColorValue } },
+                            x: { grid: { color: gridColorValue }, ticks: { color: textColorValue } }
                          },
-                        plugins: {
-                            legend: {
-                                display: false // Keep legend hidden
-                                // labels: { color: textColorValue } // Style legend if shown
-                            }
-                         }
+                        plugins: { legend: { display: false } }
                     }
                  });
             } else { console.warn("Dashboard chart canvas not found."); }
         }
 
-        // --- Other data loading functions (Identical to previous correct version) ---
         function loadPatientData() {
              if (!hasPermission('view_patients')) return;
-             patientTableBody.innerHTML = ''; // Clear existing rows
+             patientTableBody.innerHTML = '';
              const canEdit = hasPermission('patient_edit');
              const canDelete = hasPermission('patient_delete');
              const canViewDetails = hasPermission('patient_view_details');
-
-             // Add search functionality (basic example)
              const searchTerm = document.getElementById('patient-search').value.toLowerCase();
              const filteredPatients = patients.filter(p =>
                 p.name.toLowerCase().includes(searchTerm) ||
                 p.id.toLowerCase().includes(searchTerm) ||
                 p.contact.toLowerCase().includes(searchTerm)
              );
-
-
              if (filteredPatients.length === 0) {
                 patientTableBody.innerHTML = `<tr><td colspan="6">No patients found${searchTerm ? ' matching "' + searchTerm + '"' : ''}.</td></tr>`;
                 return;
              }
-
              filteredPatients.forEach(p => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -2295,55 +2270,41 @@
                     </td>`;
                 patientTableBody.appendChild(row);
              });
-             // Ensure add button state is correct
              document.getElementById('add-patient-button').disabled = !hasPermission('patient_add');
         }
 
         function loadPatientDetails(patientId) {
-            activePatientId = patientId; // Store the currently viewed patient ID
+            activePatientId = patientId;
             const patient = patients.find(p => p.id === patientId);
             const canShare = hasPermission('share_record');
             const canPrint = hasPermission('print_record');
              const patientDetailsContainer = patientDetailsSection.querySelector('#printable-patient-record');
              const actionButtonContainer = patientDetailsSection.querySelector('.action-buttons');
-
              if (!patientDetailsContainer || !actionButtonContainer) {
                   console.error("Required elements missing in #patient-details-section");
                   return;
               }
-
-
             if (!patient) {
-                 // Clear previous content before showing error
                 patientDetailsContainer.innerHTML = '';
                 actionButtonContainer.innerHTML = '';
                 patientDetailsContainer.innerHTML = `<div class="card"><p>Error: Patient not found.</p></div>`;
                 pageTitle.innerHTML = `<i class="fas fa-exclamation-circle"></i> Not Found`;
-                activePatientId = null; // Reset if not found
+                activePatientId = null;
                 return;
             }
-
-             // Update page title
              pageTitle.innerHTML = `<i class="fas fa-user-injured"></i> Record: ${patient.name}`;
-
-             // Generate initials for avatar
              const initials = patient.name.split(' ').map(n=>n[0]).join('').toUpperCase();
-
-             // Filter data specific to this patient
              const patientAppointments = appointments
                 .filter(a => a.patientId === patient.id)
-                .sort((a,b) => { try { return new Date(b.date.replace(' ', 'T')) - new Date(a.date.replace(' ', 'T'));} catch(e){return 0;} }) // Sort recent first
+                .sort((a,b) => { try { return new Date(b.date.replace(' ', 'T')) - new Date(a.date.replace(' ', 'T'));} catch(e){return 0;} })
                 .map(a => `<li>${a.date} - ${a.doctor} (${a.reason || 'N/A'}) - <span style="font-weight:bold;">${a.status}</span></li>`)
                 .join('');
-
-             const patientBilling = billingData
+             const patientBilling = billingData // Use global billingData for consistency
                 .filter(b => b.patientId === patient.id)
-                .sort((a,b) => { try{ return new Date(b.date) - new Date(a.date);} catch(e){return 0;} }) // Sort recent first
-                .map(b => `<tr><td>${b.id}</td><td>${b.date}</td><td>$${b.amount.toFixed(2)}</td><td><span style="font-weight:bold; color: ${b.status === 'Paid' ? 'var(--success-color)' : 'var(--warning-color)'};">${b.status}</span></td></tr>`)
+                .sort((a,b) => { try{ return new Date(b.date) - new Date(a.date);} catch(e){return 0;} })
+                .map(b => `<tr><td>${b.id}</td><td>${b.date}</td><td>$${b.amount.toFixed(2)}</td><td><span style="font-weight:bold; color: ${b.status === 'Paid' ? 'var(--success-color)' : (b.status === 'Pending' ? 'var(--warning-color)' : 'var(--danger-color)')};">${b.status}</span></td></tr>`)
                 .join('');
 
-
-             // Build the HTML structure
              patientDetailsContainer.innerHTML = `
                 <div class="card non-interactive">
                     <div class="patient-header">
@@ -2356,25 +2317,21 @@
                             <p><strong>Last Visit:</strong> ${patient.lastVisit || 'N/A'}</p>
                         </div>
                     </div>
-
                     <div class="tab-navigation no-print">
                         <button class="tab-button active" data-tab="history">History & Notes</button>
                         <button class="tab-button" data-tab="appointments">Appointments</button>
                         <button class="tab-button" data-tab="billing">Billing</button>
                     </div>
-
                     <div id="history-tab" class="tab-content active">
                         ${canPrint ? `<button class="btn btn-secondary btn-sm btn-print-tab no-print" data-print-target="history-tab" title="Print History"><i class="fas fa-print"></i> Print</button>` : ''}
                         <h4>Medical History & Notes</h4>
                         <p style="white-space: pre-wrap;">${patient.medicalHistory ? patient.medicalHistory : 'No history recorded.'}</p>
                     </div>
-
                     <div id="appointments-tab" class="tab-content">
                          ${canPrint ? `<button class="btn btn-secondary btn-sm btn-print-tab no-print" data-print-target="appointments-tab" title="Print Appointments"><i class="fas fa-print"></i> Print</button>` : ''}
                         <h4>Appointments</h4>
                         ${patientAppointments ? `<ul>${patientAppointments}</ul>` : '<p>No appointments found.</p>'}
                     </div>
-
                     <div id="billing-tab" class="tab-content">
                          ${canPrint ? `<button class="btn btn-secondary btn-sm btn-print-tab no-print" data-print-target="billing-tab" title="Print Billing"><i class="fas fa-print"></i> Print</button>` : ''}
                         <h4>Billing</h4>
@@ -2388,43 +2345,32 @@
                         ` : '<p>No billing records found.</p>'}
                     </div>
                 </div>`;
-
-            // Add share button if permitted
-            actionButtonContainer.innerHTML = ''; // Clear previous buttons
+            actionButtonContainer.innerHTML = '';
             if (canShare) {
                 const shareButton = document.createElement('button');
                 shareButton.className = 'btn btn-secondary btn-share-record no-print';
                 shareButton.innerHTML = '<i class="fas fa-share-alt"></i> Share Secure Link';
-                shareButton.onclick = showShareModal; // Attach handler directly
+                shareButton.onclick = showShareModal;
                 actionButtonContainer.appendChild(shareButton);
             }
-
-            // Re-attach tab navigation listeners for the newly added content
             setupPatientDetailInteractions();
         }
 
          function setupPatientDetailInteractions() {
             const detailSection = document.getElementById('patient-details-section');
             if (!detailSection) return;
-
             const tabButtons = detailSection.querySelectorAll('.tab-button');
             const tabContents = detailSection.querySelectorAll('.tab-content');
-
-             // Clone and replace to ensure old listeners are detached
              tabButtons.forEach(button => {
                 const newButton = button.cloneNode(true);
                 button.parentNode.replaceChild(newButton, button);
              });
-
-             // Add listeners to the new buttons
              const newTabButtons = detailSection.querySelectorAll('.tab-button');
             newTabButtons.forEach(button => {
                  button.addEventListener('click', () => {
                      const targetTab = button.dataset.tab;
-                     // Deactivate others
                      newTabButtons.forEach(btn => btn.classList.remove('active'));
                      tabContents.forEach(content => content.classList.remove('active'));
-                     // Activate clicked
                      button.classList.add('active');
                      const targetContent = detailSection.querySelector(`#${targetTab}-tab`);
                      if(targetContent) targetContent.classList.add('active');
@@ -2437,25 +2383,20 @@
              appointmentTableBody.innerHTML = '';
              const canEdit = hasPermission('appointment_edit');
              const canCancel = hasPermission('appointment_cancel');
-
              const sortedAppointments = appointments.sort((a, b) => {
-                 try { return new Date(a.date.replace(' ', 'T')) - new Date(b.date.replace(' ', 'T')); } // Sort oldest first for schedule view
+                 try { return new Date(a.date.replace(' ', 'T')) - new Date(b.date.replace(' ', 'T')); }
                  catch(e) { return 0; }
              });
-
              if (sortedAppointments.length === 0) {
                  appointmentTableBody.innerHTML = `<tr><td colspan="6">No appointments scheduled.</td></tr>`;
                  return;
              }
-
-
              sortedAppointments.forEach((a, index) => {
                  const row = document.createElement('tr');
                  const isPastOrCancelled = a.status === 'Completed' || a.status === 'Cancelled';
-                 let statusColor = 'var(--warning-color)'; // Pending/Default
+                 let statusColor = 'var(--warning-color)';
                  if (a.status === 'Confirmed') statusColor = 'var(--success-color)';
-                 if (isPastOrCancelled) statusColor = 'var(--text-muted)'; // Gray using var
-
+                 if (isPastOrCancelled) statusColor = 'var(--text-muted)';
                  row.innerHTML = `
                     <td>${a.date || 'N/A'}</td>
                     <td>${a.patient || 'N/A'} (ID: ${a.patientId || 'N/A'})</td>
@@ -2468,23 +2409,19 @@
                     </td>`;
                  appointmentTableBody.appendChild(row);
              });
-             // Ensure add button state is correct
              document.getElementById('add-appointment-button').disabled = !hasPermission('appointment_add');
         }
 
         function loadMessageData() {
              if (!hasPermission('view_messages')) return;
              messageListUl.innerHTML = '';
-             messageDetailView.style.display = 'none'; // Hide detail view initially
+             messageDetailView.style.display = 'none';
              const canView = hasPermission('message_view');
-
-             const sortedMessages = messages.sort((a, b) => { try{ return new Date(b.date.replace(' ', 'T')) - new Date(a.date.replace(' ', 'T')); } catch(e){ return 0; } } ); // Sort recent first
-
+             const sortedMessages = messages.sort((a, b) => { try{ return new Date(b.date.replace(' ', 'T')) - new Date(a.date.replace(' ', 'T')); } catch(e){ return 0; } } );
              if (sortedMessages.length === 0) {
                  messageListUl.innerHTML = '<li class="message-item"><p>No messages in your inbox.</p></li>';
                  return;
              }
-
              sortedMessages.forEach(m => {
                  const li = document.createElement('li');
                  li.className = `message-item ${m.unread ? 'unread' : ''}`;
@@ -2496,37 +2433,29 @@
                  if (canView) {
                     li.style.cursor = 'pointer';
                     li.title = 'Click to read';
-                    // Add listener via delegation later
                  } else {
                      li.style.cursor = 'not-allowed';
                      li.title = 'Read permission required';
                  }
                  messageListUl.appendChild(li);
              });
-             // Ensure compose button state is correct
              document.getElementById('compose-message-button').disabled = !hasPermission('message_compose');
         }
 
         function showMessageDetail(messageId) {
             const message = messages.find(m => m.id === messageId);
             if (!message || !hasPermission('message_view')) return;
-
             document.getElementById('message-detail-subject').textContent = message.subject || '(No Subject)';
             document.getElementById('message-detail-sender').textContent = `From: ${message.sender} (To: ${message.recipient || 'Unknown'})`;
             document.getElementById('message-detail-date').textContent = ` (${message.date || 'N/A'})`;
             document.getElementById('message-detail-body').textContent = message.body || '(No message body)';
             messageDetailView.style.display = 'block';
-
-             // Mark as read
              if(message.unread) {
                  message.unread = false;
                  const listItem = messageListUl.querySelector(`.message-item[data-message-id="${messageId}"]`);
                  if (listItem) listItem.classList.remove('unread');
-                 // Update dashboard widget if currently visible (or next time it loads)
                  if(currentView === 'dashboard'){ loadDashboardData(); }
              }
-
-             // Scroll the message list item into view if needed
             const listItem = messageListUl.querySelector(`.message-item[data-message-id="${messageId}"]`);
             if (listItem) { listItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
         }
@@ -2534,17 +2463,15 @@
         function loadBillingData() {
             if(!hasPermission('view_billing')) return;
             billingTableBody.innerHTML = '';
-
-             const sortedBilling = billingData.sort((a,b) => { try { return new Date(b.date) - new Date(a.date); } catch(e){ return 0; } } ); // Sort recent first
-
+             const sortedBilling = billingData.sort((a,b) => { try { return new Date(b.date) - new Date(a.date); } catch(e){ return 0; } } );
              if (sortedBilling.length === 0) {
                 billingTableBody.innerHTML = `<tr><td colspan="6">No billing statements found.</td></tr>`;
                 return;
              }
-
              sortedBilling.forEach(b => {
                  const row = document.createElement('tr');
-                 const statusColor = b.status === 'Paid' ? 'var(--success-color)' : (b.status === 'Pending' ? 'var(--warning-color)' : 'var(--danger-color)'); // Example for overdue/cancelled
+                 const statusColor = b.status === 'Paid' ? 'var(--success-color)' : (b.status === 'Pending' ? 'var(--warning-color)' : 'var(--danger-color)');
+                 const canRecordPayment = hasPermission('billing_record_payment');
                  row.innerHTML = `
                      <td>${b.id}</td>
                      <td>${b.patient || 'N/A'} (ID: ${b.patientId || 'N/A'})</td>
@@ -2553,7 +2480,7 @@
                      <td><span style="color: ${statusColor}; font-weight: bold;">${b.status}</span></td>
                      <td class="action-buttons no-print">
                          <button class="btn-view" title="View Details (Not Implemented)" disabled><i class="fas fa-eye"></i></button>
-                         ${b.status !== 'Paid' ? `<button class="btn-edit" title="Mark as Paid (Not Implemented)" disabled><i class="fas fa-check-circle"></i></button>` : ''}
+                         ${b.status === 'Pending' ? `<button class="btn-edit btn-record-payment" title="Record Payment" data-invoice-id="${b.id}" data-patient-name="${b.patient}" data-amount-due="${b.amount.toFixed(2)}" ${!canRecordPayment ? 'disabled' : ''}><i class="fas fa-credit-card"></i></button>` : ''}
                          <button class="btn-print" title="Print Statement (Not Implemented)" disabled><i class="fas fa-print"></i></button>
                      </td>`;
                  billingTableBody.appendChild(row);
@@ -2565,21 +2492,16 @@
              userTableBody.innerHTML = '';
              const canEdit = hasPermission('user_edit');
              const canToggle = hasPermission('user_toggle_status');
-
              if (systemUsers.length === 0) {
                  userTableBody.innerHTML = `<tr><td colspan="6">No users found in the system.</td></tr>`;
                  return;
              }
-
              systemUsers.forEach(u => {
                  const row = document.createElement('tr');
                  const roleDisplay = u.role.charAt(0).toUpperCase() + u.role.slice(1);
                  const statusColor = u.status === 'Active' ? 'var(--success-color)' : 'var(--danger-color)';
-                  // More reliable check if it's the logged-in user
                  const currentSystemUsername = systemUsers.find(su => su.name === currentUser.name)?.username;
                  const isCurrentUser = u.username === currentSystemUsername;
-
-
                  row.innerHTML = `
                      <td>${u.username}</td>
                      <td>${u.name}</td>
@@ -2592,63 +2514,39 @@
                      </td>`;
                  userTableBody.appendChild(row);
              });
-             // Ensure add button state is correct
              const addUserBtn = document.getElementById('add-user-button');
              if(addUserBtn) addUserBtn.disabled = !hasPermission('user_add');
         }
 
-        // --- Form Save Handlers --- (Identical to previous correct version) ---
         function handleSavePatient(event) {
             event.preventDefault();
             const patientId = document.getElementById('patient-id-edit').value;
             const isEditing = !!patientId;
-
             if (isEditing && !hasPermission('patient_edit')) { alert("Permission denied to edit patients."); return; }
             if (!isEditing && !hasPermission('patient_add')) { alert("Permission denied to add patients."); return; }
-
             const name = document.getElementById('patient-name').value.trim();
             const dob = document.getElementById('patient-dob').value;
             const contact = document.getElementById('patient-contact').value.trim();
             const medicalHistory = document.getElementById('patient-history').value.trim();
-
             if (!name || !dob || !contact) { alert("Name, Date of Birth, and Contact are required."); return; }
-
             let originalName = null;
-
-            if (isEditing) { // Editing existing patient
+            if (isEditing) {
                 const patientIndex = patients.findIndex(p => p.id === patientId);
                 if (patientIndex > -1) {
-                    originalName = patients[patientIndex].name; // Store original name before update
-                    patients[patientIndex] = {
-                        ...patients[patientIndex], // Keep existing fields like lastVisit etc.
-                        name,
-                        dob,
-                        contact,
-                        medicalHistory
-                    };
-                     // Update name in related records if it changed
-                     if (originalName && originalName !== name) {
-                         updateRelatedRecords(patientId, name);
-                     }
+                    originalName = patients[patientIndex].name;
+                    patients[patientIndex] = { ...patients[patientIndex], name, dob, contact, medicalHistory };
+                     if (originalName && originalName !== name) { updateRelatedRecords(patientId, name); }
                     alert('Patient record updated successfully.');
-                } else {
-                    alert('Error: Patient to edit not found.'); return;
-                }
-            } else { // Adding new patient
-                const newPatient = {
-                    id: generatePatientId(),
-                    name, dob, contact, medicalHistory,
-                    lastVisit: null,
-                    billing: [],
-                };
+                } else { alert('Error: Patient to edit not found.'); return; }
+            } else {
+                const newPatient = { id: generatePatientId(), name, dob, contact, medicalHistory, lastVisit: null, billing: [] };
                 patients.push(newPatient);
                 alert('Patient added successfully.');
             }
-
+            savePatientsToStorage(); // Save to localStorage
             hideModal('patient-modal');
-            loadPatientData(); // Refresh the main patient list
-            loadDashboardData(); // Update dashboard widgets
-
+            loadPatientData();
+            loadDashboardData();
              if (isEditing && currentView === 'patient-details' && activePatientId === patientId) {
                  loadPatientDetails(patientId);
              } else if (currentView === 'patient-details' && !isEditing) {
@@ -2661,35 +2559,27 @@
             const apptIndexStr = document.getElementById('appointment-index-edit').value;
             const isEditing = apptIndexStr !== '';
             const apptIndex = isEditing ? parseInt(apptIndexStr, 10) : -1;
-
             if (isEditing && !hasPermission('appointment_edit')) { alert("Permission denied to edit appointments."); return; }
             if (!isEditing && !hasPermission('appointment_add')) { alert("Permission denied to add appointments."); return; }
-
             const patientId = document.getElementById('appointment-patient').value;
             const datetime = document.getElementById('appointment-datetime').value;
             const doctor = document.getElementById('appointment-doctor').value;
             const reason = document.getElementById('appointment-reason').value.trim();
             const status = document.getElementById('appointment-status').value;
-
             if (!patientId || !datetime || !doctor || !reason) { alert("Patient, Date/Time, Doctor, and Reason are required."); return; }
-
             const patientName = patients.find(p=> p.id === patientId)?.name || 'Unknown Patient';
-            const formattedDate = datetime.replace('T', ' '); // Format for display/storage
-
-             const appointmentData = { date: formattedDate, patientId, patient: patientName, doctor, reason, status };
-
-            if (isEditing && apptIndex >= 0 && apptIndex < appointments.length) { // Editing existing
+            const formattedDate = datetime.replace('T', ' ');
+            const appointmentData = { date: formattedDate, patientId, patient: patientName, doctor, reason, status };
+            if (isEditing && apptIndex >= 0 && apptIndex < appointments.length) {
                 appointments[apptIndex] = appointmentData;
                 alert('Appointment updated successfully.');
-            } else { // Adding new
+            } else {
                 appointments.push(appointmentData);
                  alert('Appointment scheduled successfully.');
             }
-
             hideModal('appointment-modal');
-            loadAppointmentData(); // Refresh appointment list
-            loadDashboardData(); // Update dashboard widgets
-
+            loadAppointmentData();
+            loadDashboardData();
             if (currentView === 'patient-details' && activePatientId === patientId) {
                  loadPatientDetails(activePatientId);
              }
@@ -2698,60 +2588,47 @@
         function handleSendMessage(event) {
             event.preventDefault();
             if (!hasPermission('message_compose')) { alert("Permission denied to send messages."); return; }
-
             const recipient = document.getElementById('message-recipient').value.trim();
             const subject = document.getElementById('message-subject').value.trim();
             const body = document.getElementById('message-body').value.trim();
-
             if (!recipient || !subject || !body) { alert("Recipient, Subject, and Message Body are required."); return; }
-
             const newMessage = {
                 id: generateMessageId(),
-                sender: currentUser.name, // Use name from logged-in user object
+                sender: currentUser.name,
                 recipient, subject, body,
-                date: new Date().toISOString().slice(0, 16).replace('T', ' '), // Simple timestamp
-                unread: true // New messages are unread
+                date: new Date().toISOString().slice(0, 16).replace('T', ' '),
+                unread: true
             };
             messages.push(newMessage);
-
             hideModal('message-modal');
-            loadMessageData(); // Refresh message list
+            loadMessageData();
             alert('Message sent (simulated).');
-            loadDashboardData(); // Update dashboard widgets (unread count)
+            loadDashboardData();
         }
 
         function handleSaveUser(event) {
             event.preventDefault();
-            const usernameEdit = document.getElementById('user-username-edit').value; // Original username if editing
+            const usernameEdit = document.getElementById('user-username-edit').value;
             const isEditing = !!usernameEdit;
-
             if (isEditing && !hasPermission('user_edit')) { alert("Permission denied to edit users."); return; }
             if (!isEditing && !hasPermission('user_add')) { alert("Permission denied to add users."); return; }
-
             const username = document.getElementById('user-username').value.trim();
             const name = document.getElementById('user-fullname').value.trim();
-            const password = document.getElementById('user-password').value; // Don't trim password
+            const password = document.getElementById('user-password').value;
             const role = document.getElementById('user-role-select').value;
             const status = document.getElementById('user-status-select').value;
-
             if (!username || !name) { alert("Username and Full Name are required."); return; }
-
              const currentSystemUsername = systemUsers.find(u => u.name === currentUser.name)?.username;
-
              if (isEditing && usernameEdit === currentSystemUsername && status === 'Inactive') {
                  alert("You cannot deactivate your own account via this form."); return;
              }
-
-
-            if (isEditing) { // Editing existing user
+            if (isEditing) {
                 const userIndex = systemUsers.findIndex(u => u.username === usernameEdit);
                 if (userIndex > -1) {
                     systemUsers[userIndex].name = name;
                     systemUsers[userIndex].role = role;
                     systemUsers[userIndex].status = status;
-
                      const loginKey = Object.keys(users).find(key => users[key].name === systemUsers[userIndex].name || key === usernameEdit);
-
                     if (loginKey && users[loginKey]) {
                          users[loginKey].name = name;
                          users[loginKey].role = role;
@@ -2766,14 +2643,11 @@
                               currentUser.name = name;
                               currentUser.role = role;
                               currentUser.initials = users[loginKey].initials;
-                              initializeUI(); // Re-init to update header display
+                              initializeUI();
                           }
-
                      } else { alert('Warning: User found in system list but corresponding login entry mismatch or missing.'); }
-
                  } else { alert('Error: User to edit not found.'); return; }
-
-            } else { // Adding new user
+            } else {
                 if (systemUsers.some(u => u.username === username) || users[username]) {
                     alert(`Username '${username}' already exists. Please choose a different one.`); return;
                 }
@@ -2782,29 +2656,74 @@
                 }
                 const newUserSystem = { username, name, role, status, lastLogin: null };
                 systemUsers.push(newUserSystem);
-
-                users[username] = {
-                    password: password,
-                    name: name,
-                    role: role,
-                    initials: name.split(' ').map(n=>n[0]).join('').toUpperCase()
-                };
+                users[username] = { password: password, name: name, role: role, initials: name.split(' ').map(n=>n[0]).join('').toUpperCase() };
                  alert('New user added successfully.');
             }
             hideModal('user-modal');
-            loadUserData(); // Refresh user list
+            loadUserData();
+        }
+
+        // New: Handle Payment Recording
+        function handleRecordPayment(event) {
+            event.preventDefault();
+            if (!hasPermission('billing_record_payment')) {
+                alert("Permission denied to record payments."); return;
+            }
+
+            const invoiceId = document.getElementById('payment-invoice-id').value;
+            const amountReceived = parseFloat(document.getElementById('payment-amount-received').value);
+
+            const billingRecord = billingData.find(b => b.id === invoiceId);
+            if (!billingRecord) {
+                alert("Error: Invoice not found."); return;
+            }
+
+            if (isNaN(amountReceived) || amountReceived <= 0) {
+                alert("Please enter a valid payment amount."); return;
+            }
+
+            if (amountReceived > billingRecord.amount) {
+                alert("Payment amount cannot exceed the amount due for this simplified system."); return;
+            }
+
+            if (amountReceived === billingRecord.amount) {
+                billingRecord.status = 'Paid';
+                alert(`Payment of $${amountReceived.toFixed(2)} recorded for invoice ${invoiceId}. Status set to 'Paid'.`);
+            } else {
+                alert(`Payment of $${amountReceived.toFixed(2)} recorded. Invoice status remains '${billingRecord.status}' as the full amount ($${billingRecord.amount.toFixed(2)}) was not paid in this transaction.`);
+                // For simplicity, not handling partial payment leading to "Paid" status here.
+                // If you wanted to track paid amounts:
+                // billingRecord.paidAmount = (billingRecord.paidAmount || 0) + amountReceived;
+                // if (billingRecord.paidAmount >= billingRecord.amount) billingRecord.status = 'Paid';
+                hideModal('payment-modal');
+                loadBillingData();
+                loadDashboardData();
+                return;
+            }
+
+            // Update corresponding patient's billing record for consistency if it exists
+            const patientWithBilling = patients.find(p => p.billing && p.billing.some(b_item => b_item.id === invoiceId));
+            if (patientWithBilling) {
+                const patientBillingRecord = patientWithBilling.billing.find(b_item => b_item.id === invoiceId);
+                if (patientBillingRecord) {
+                    patientBillingRecord.status = 'Paid';
+                    // patientBillingRecord.amount = billingRecord.amount; // ensure amount is also consistent if needed
+                    savePatientsToStorage(); // Patient data changed
+                }
+            }
+
+            hideModal('payment-modal');
+            loadBillingData();
+            loadDashboardData();
         }
 
 
-        // --- Update Related Records --- (Identical to previous correct version) ---
         function updateRelatedRecords(patientId, newName) {
              appointments.forEach(a => { if(a.patientId === patientId) a.patient = newName; });
              billingData.forEach(b => { if(b.patientId === patientId) b.patient = newName; });
              console.log(`Updated related records for patient ID ${patientId} with new name: ${newName}`);
         }
 
-
-        // --- Delete Handlers --- (Identical to previous correct version) ---
         function handleDeletePatient(patientId) {
             if (!hasPermission('patient_delete')) { alert("Permission denied to delete patients."); return; }
             const patient = patients.find(p => p.id === patientId);
@@ -2812,13 +2731,12 @@
                 patients = patients.filter(p => p.id !== patientId);
                 appointments = appointments.filter(a => a.patientId !== patientId);
                 billingData = billingData.filter(b => b.patientId !== patientId);
-
+                savePatientsToStorage(); // Save to localStorage
                 alert(`Patient ${patient.name} deleted.`);
-                loadPatientData(); // Refresh list
-                loadAppointmentData(); // Refresh related lists
+                loadPatientData();
+                loadAppointmentData();
                 loadBillingData();
-                loadDashboardData(); // Update counts
-
+                loadDashboardData();
                 if (currentView === 'patient-details' && activePatientId === patientId) {
                      navigateTo('patients');
                  }
@@ -2832,8 +2750,8 @@
                 if (confirm(`Are you sure you want to cancel the appointment for ${appt.patient} on ${appt.date}?`)) {
                     appointments[index].status = 'Cancelled';
                     alert('Appointment cancelled.');
-                    loadAppointmentData(); // Refresh list
-                    loadDashboardData(); // Update counts
+                    loadAppointmentData();
+                    loadDashboardData();
                      if (currentView === 'patient-details' && activePatientId === appt.patientId) {
                          loadPatientDetails(activePatientId);
                      }
@@ -2843,15 +2761,11 @@
 
         function handleToggleUserStatus(username) {
             if (!hasPermission('user_toggle_status')) { alert("Permission denied to change user status."); return; }
-
              const userToToggle = systemUsers.find(u => u.username === username);
              const currentSystemUsername = systemUsers.find(u => u.name === currentUser.name)?.username;
-
              if (userToToggle && userToToggle.username === currentSystemUsername) {
                  alert("You cannot change your own status using this button."); return;
              }
-
-
             const userIndex = systemUsers.findIndex(u => u.username === username);
             if (userIndex > -1) {
                 const user = systemUsers[userIndex];
@@ -2859,33 +2773,28 @@
                 if (confirm(`Are you sure you want to set user '${username}' to ${newStatus}?`)) {
                     systemUsers[userIndex].status = newStatus;
                      alert(`User '${username}' status set to ${newStatus}.`);
-                    loadUserData(); // Refresh list
+                    loadUserData();
                  }
             } else { alert('Error: User not found.'); }
         }
 
-
-        // --- Shareable Link Modal Logic (Unchanged) ---
         function showShareModal() {
              if (!activePatientId || !hasPermission('share_record')) {
                 alert("Cannot generate link. Ensure a patient record is selected and you have permission."); return;
              }
             const patient = patients.find(p => p.id === activePatientId);
             if (!patient) { alert("Patient data not found."); return; }
-
-            // Simulate generating a token (replace with real backend logic)
             const simulatedToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-            const shareLink = `${window.location.origin}/view-record?token=${simulatedToken}&patient=${activePatientId}`; // Example URL structure
-
+            const shareLink = `${window.location.origin}/view-record?token=${simulatedToken}&patient=${activePatientId}`;
             shareLinkOutput.textContent = shareLink;
             copyLinkButton.disabled = false;
-            copyLinkButton.innerHTML = '<i class="fas fa-copy"></i> Copy Link'; // Reset button text
+            copyLinkButton.innerHTML = '<i class="fas fa-copy"></i> Copy Link';
             showModal('share-modal');
         }
 
         function copyShareLink() {
              if (!shareLinkOutput.textContent || shareLinkOutput.textContent === 'Generating link...' || shareLinkOutput.textContent === 'Copy failed.') {
-                 return; // Don't copy placeholder text
+                 return;
              }
             navigator.clipboard.writeText(shareLinkOutput.textContent).then(() => {
                 copyLinkButton.innerHTML = '<i class="fas fa-check"></i> Copied!';
@@ -2902,15 +2811,11 @@
             });
         }
 
-        // --- Sidebar Toggle for Mobile --- FIX: Updated logic
         function toggleMobileSidebar() {
             appSidebar.classList.toggle('open');
-            // Add/remove class on header to control toggle button visibility
             appHeader.classList.toggle('sidebar-open', appSidebar.classList.contains('open'));
         }
 
-
-        // --- Theme Switching Logic ---
         function applyTheme(theme) {
             if (theme === 'dark') {
                 document.body.classList.add('dark-mode');
@@ -2919,9 +2824,7 @@
                 document.body.classList.remove('dark-mode');
                 themeToggle.checked = false;
             }
-             // Update chart if visible and initialized
              if (currentView === 'dashboard' && dashboardChartInstance) {
-                 // Delay slightly to ensure CSS variables are fully applied
                  setTimeout(loadDashboardData, 50);
              }
         }
@@ -2929,36 +2832,29 @@
         function handleThemeToggle() {
             const newTheme = themeToggle.checked ? 'dark' : 'light';
             applyTheme(newTheme);
-            localStorage.setItem('theme', newTheme); // Save preference
+            localStorage.setItem('theme', newTheme);
         }
 
         function applyInitialTheme() {
             const savedTheme = localStorage.getItem('theme');
-             // Check for system preference if no saved theme
             const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
             const initialTheme = savedTheme || (prefersDark ? 'dark' : 'light');
             applyTheme(initialTheme);
-
-             // Listener for system preference changes
              window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
-                 // Only apply system change if no user preference is saved
                  if (!localStorage.getItem('theme')) {
                      applyTheme(event.matches ? 'dark' : 'light');
                  }
              });
         }
 
-
-        // --- Event Listeners ---
         loginForm.addEventListener('submit', handleLogin);
         logoutButton.addEventListener('click', handleLogout);
-        sidebarToggle.addEventListener('click', toggleMobileSidebar); // Mobile toggle listener
-        themeToggle.addEventListener('change', handleThemeToggle); // Theme toggle listener
+        sidebarToggle.addEventListener('click', toggleMobileSidebar);
+        themeToggle.addEventListener('change', handleThemeToggle);
 
-        // Function to add nav link listeners (called after filtering)
         function addNavLinkListeners() {
             navLinks.forEach(link => {
-                link.removeEventListener('click', handleNavLinkClick); // Remove old first
+                link.removeEventListener('click', handleNavLinkClick);
                 link.addEventListener('click', handleNavLinkClick);
             });
         }
@@ -2970,66 +2866,50 @@
              } else if (targetView === currentView) {
                  appContent.scrollTo({ top: 0, behavior: 'smooth' });
              }
-             // Close sidebar on mobile after clicking a link
              if (window.innerWidth <= 768 && appSidebar.classList.contains('open')) {
-                 toggleMobileSidebar(); // Use the function to ensure header class is updated
+                 toggleMobileSidebar();
              }
          }
 
-
-        // Form Submissions
         patientForm.addEventListener('submit', handleSavePatient);
         appointmentForm.addEventListener('submit', handleSaveAppointment);
         messageForm.addEventListener('submit', handleSendMessage);
         userForm.addEventListener('submit', handleSaveUser);
+        paymentForm.addEventListener('submit', handleRecordPayment); // New listener
 
-        // Share Modal Button
         copyLinkButton.addEventListener('click', copyShareLink);
-
-        // Patient Search Input
         document.getElementById('patient-search').addEventListener('input', loadPatientData);
 
-        // Event Delegation for Table Actions, Back Buttons, Print Buttons, Dashboard Widgets, Message Items
          document.body.addEventListener('click', function(event) {
              const target = event.target;
-             const targetButton = target.closest('button'); // Find closest button ancestor
+             const targetButton = target.closest('button');
 
-              // Close mobile sidebar if clicking outside it while it's open
               if (appSidebar.classList.contains('open') && !appSidebar.contains(target) && !sidebarToggle.contains(target) && target !== sidebarToggle ) {
-                  toggleMobileSidebar(); // Use function to ensure header class updates
+                  toggleMobileSidebar();
               }
 
-             // Modal Close Buttons (Check specifically for the button class)
              if (target.matches('.modal-close-button') || target.closest('.modal-close-button')) {
                  const modal = target.closest('.modal');
                  if (modal) { hideModal(modal.id); }
-                 return; // Stop further processing
+                 return;
              }
-              // Clicking outside modal *content* (but on the modal background)
               if (target.matches('.modal.visible') && !target.querySelector('.modal-content')?.contains(target) ) {
                   hideModal(target.id);
-                  return; // Stop further processing
+                  return;
               }
 
-
-             // Dashboard Widget Clicks
              const widget = target.closest('.clickable-widget[data-target]');
              if (widget) {
                  const targetSectionId = widget.dataset.target;
                  if (targetSectionId) { navigateTo(targetSectionId); }
-                 return; // Stop further processing
+                 return;
              }
 
-             // Check if the click was on any button *after* checking modals/widgets
              if (targetButton) {
-                 const button = targetButton; // Use the found button
-
-                 // Back to List Button
+                 const button = targetButton;
                  if (button.matches('.back-to-list[data-target]')) {
                      navigateTo(button.dataset.target); return;
                  }
-
-                 // --- Patient Actions ---
                  if (button.matches('.btn-view[data-patient-id]')) {
                      navigateTo('patient-details', { patientId: button.dataset.patientId }); return;
                  }
@@ -3045,9 +2925,6 @@
                  if (button.matches('#add-patient-button')) {
                       if(hasPermission('patient_add')) showModal('patient-modal', 'add'); else alert('Permission Denied'); return;
                   }
-
-
-                 // --- Appointment Actions ---
                  if (button.matches('.btn-edit[data-appointment-index]')) {
                      if(hasPermission('appointment_edit')) showModal('appointment-modal', 'edit', button.dataset.appointmentIndex); else alert('Permission Denied'); return;
                  }
@@ -3057,14 +2934,9 @@
                  if (button.matches('#add-appointment-button')) {
                       if(hasPermission('appointment_add')) showModal('appointment-modal', 'add'); else alert('Permission Denied'); return;
                   }
-
-                 // --- Message Actions ---
                   if (button.matches('#compose-message-button')) {
                       if(hasPermission('message_compose')) showModal('message-modal', 'add'); else alert('Permission Denied'); return;
                   }
-
-
-                 // --- User Actions ---
                  if (button.matches('.btn-edit[data-user-username]')) {
                      if(hasPermission('user_edit')) showModal('user-modal', 'edit', button.dataset.userUsername); else alert('Permission Denied'); return;
                  }
@@ -3074,8 +2946,6 @@
                  if (button.matches('#add-user-button')) {
                       if(hasPermission('user_add')) showModal('user-modal', 'add'); else alert('Permission Denied'); return;
                   }
-
-                 // --- Print Action ---
                  if (button.matches('.btn-print-tab[data-print-target]')) {
                      if (!hasPermission('print_record')) { alert("Permission denied to print records."); return; }
                      const targetTabId = button.dataset.printTarget;
@@ -3084,41 +2954,43 @@
                          document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('printable-section'));
                          targetTabContent.classList.add('printable-section');
                          window.print();
-                         // Remove class slightly after print command to ensure it's applied during print process
                          setTimeout(() => targetTabContent.classList.remove('printable-section'), 500);
                      } else { console.error("Print target element not found:", targetTabId); }
                      return;
                  }
-
-             } // End of button checks
-
-             // Message List Item Clicks (if not handled by specific button inside)
+                 // New: Billing Record Payment Button
+                 if (button.matches('.btn-record-payment[data-invoice-id]')) {
+                    const invoiceId = button.dataset.invoiceId;
+                    const patientName = button.dataset.patientName;
+                    const amountDue = button.dataset.amountDue;
+                    if (hasPermission('billing_record_payment')) {
+                        showModal('payment-modal', 'record', { invoiceId, patientName, amountDue });
+                    } else {
+                        alert("Permission denied to record payments.");
+                    }
+                    return;
+                }
+             }
              const messageItem = target.closest('.message-item[data-message-id]');
-             if (messageItem && !targetButton) { // Ensure click wasn't on a button inside the item
+             if (messageItem && !targetButton) {
                   if(hasPermission('message_view')) showMessageDetail(parseInt(messageItem.dataset.messageId, 10));
                   else alert("Permission denied to view messages.");
                   return;
               }
+         });
 
-         }); // End of body click listener
-
-
-         // --- Global Key Listener ---
          document.addEventListener('keydown', function(event) {
              if (event.key === "Escape") {
                  const visibleModals = document.querySelectorAll('.modal.visible');
                  if (visibleModals.length > 0) {
                      hideModal(visibleModals[visibleModals.length - 1].id);
                  } else if (appSidebar.classList.contains('open')) {
-                     // Close sidebar if open and no modals are open
-                     toggleMobileSidebar(); // Use function
+                     toggleMobileSidebar();
                  }
              }
          });
 
-
-        // --- Initial Check & Theme Setup ---
-        applyInitialTheme(); // Apply theme on initial load
+        applyInitialTheme();
 
     </script>
 
