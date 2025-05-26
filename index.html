@@ -1315,7 +1315,7 @@
                  </ul>
             </nav>
              <div class="sidebar-footer">
-                MediFlow Nexus &copy; <span id="current-year"></span> <br> All Rights Reserved.
+                INY.co &copy; <span id="current-year"></span> <br> All Rights Reserved.
             </div>
         </aside>
 
@@ -1455,7 +1455,10 @@
                 <section id="billing-section" class="content-section">
                     <h2><i class="fas fa-file-invoice-dollar"></i> Billing & Statements</h2>
                      <div class="card">
-                        <h3>Recent Statements</h3>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
+                            <h3>Recent Statements</h3>
+                            <button id="add-invoice-button" class="btn btn-primary no-print"><i class="fas fa-plus-circle"></i> Add New Invoice</button>
+                        </div>
                         <div style="overflow-x: auto;">
                             <table class="data-table" id="billing-table">
                                  <thead>
@@ -1723,6 +1726,47 @@
         </div>
     </div>
 
+    <!-- NEW: Invoice Add/Edit Modal -->
+    <div id="invoice-modal" class="modal no-print">
+        <div class="modal-content">
+            <button class="modal-close-button no-print" onclick="hideModal('invoice-modal')">&times;</button>
+            <h3 id="invoice-modal-title">Add New Invoice</h3>
+            <form id="invoice-form" class="app-form">
+                <input type="hidden" id="invoice-id-edit">
+                <div class="form-group">
+                    <label for="invoice-patient">Patient</label>
+                    <select id="invoice-patient" required>
+                        <!-- Options populated by JS -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="invoice-date">Invoice Date</label>
+                    <input type="date" id="invoice-date" required>
+                </div>
+                <div class="form-group">
+                    <label for="invoice-description">Description (Service Rendered)</label>
+                    <input type="text" id="invoice-description" required placeholder="e.g., Consultation Fee, Lab Test">
+                </div>
+                <div class="form-group">
+                    <label for="invoice-amount">Amount</label>
+                    <input type="number" id="invoice-amount" step="0.01" min="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="invoice-status">Status</label>
+                    <select id="invoice-status" required>
+                        <option value="Pending">Pending</option>
+                        <option value="Paid">Paid</option>
+                        <option value="Cancelled">Cancelled</option>
+                    </select>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="btn btn-secondary" onclick="hideModal('invoice-modal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Invoice</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 
     <script>
         // --- Polyfills & Basic Setup ---
@@ -1740,9 +1784,9 @@
         };
 
         const initialDefaultPatients = [
-            { id: 'P001', name: 'Alice Wonderland', dob: '1985-03-15', contact: 'alice@example.com', lastVisit: '2023-10-20', medicalHistory: 'Mild asthma, seasonal allergies.\nFollow up in 6 months.', billing: [{ id: 'INV001', date: '2023-10-20', amount: 150, status: 'Paid' }] },
-            { id: 'P002', name: 'Bob The Builder', dob: '1978-07-22', contact: 'bob@example.com', lastVisit: '2023-09-01', medicalHistory: 'Hypertension (controlled), previous knee surgery (2019).\nPrescribed Lisinopril 10mg daily.', billing: [{ id: 'INV002', date: '2023-09-01', amount: 120, status: 'Pending' }] },
-            { id: 'P003', name: 'Charlie Chaplin', dob: '1992-11-30', contact: 'charlie@example.com', lastVisit: '2023-11-05', medicalHistory: 'No significant history.', billing: [{ id: 'INV003', date: '2023-11-05', amount: 85, status: 'Paid' }] }
+            { id: 'P001', name: 'Alice Wonderland', dob: '1985-03-15', contact: 'alice@example.com', lastVisit: '2023-10-20', medicalHistory: 'Mild asthma, seasonal allergies.\nFollow up in 6 months.', billing: [{ id: 'INV001', date: '2023-10-20', amount: 150, status: 'Paid', description: 'Routine Checkup'}] },
+            { id: 'P002', name: 'Bob The Builder', dob: '1978-07-22', contact: 'bob@example.com', lastVisit: '2023-09-01', medicalHistory: 'Hypertension (controlled), previous knee surgery (2019).\nPrescribed Lisinopril 10mg daily.', billing: [{ id: 'INV002', date: '2023-09-01', amount: 120, status: 'Pending', description: 'Follow-up Consultation' }] },
+            { id: 'P003', name: 'Charlie Chaplin', dob: '1992-11-30', contact: 'charlie@example.com', lastVisit: '2023-11-05', medicalHistory: 'No significant history.', billing: [{ id: 'INV003', date: '2023-11-05', amount: 85, status: 'Paid', description: 'Vaccination' }] }
         ];
         let patients = []; // Will be populated from localStorage or default
 
@@ -1760,10 +1804,10 @@
          ];
 
          let billingData = [ // Standalone list for the billing section view
-            { id: 'INV001', patient: 'Alice Wonderland', patientId: 'P001', date: '2023-10-20', amount: 150.00, status: 'Paid' },
-            { id: 'INV002', patient: 'Bob The Builder', patientId: 'P002', date: '2023-09-01', amount: 120.00, status: 'Pending' },
-            { id: 'INV003', patient: 'Charlie Chaplin', patientId: 'P003', date: '2023-11-05', amount: 85.00, status: 'Paid' },
-            { id: 'INV004', patient: 'Alice Wonderland', patientId: 'P001', date: '2023-08-15', amount: 75.00, status: 'Paid' }
+            { id: 'INV001', patient: 'Alice Wonderland', patientId: 'P001', date: '2023-10-20', amount: 150.00, status: 'Paid', description: 'Routine Checkup' },
+            { id: 'INV002', patient: 'Bob The Builder', patientId: 'P002', date: '2023-09-01', amount: 120.00, status: 'Pending', description: 'Follow-up Consultation' },
+            { id: 'INV003', patient: 'Charlie Chaplin', patientId: 'P003', date: '2023-11-05', amount: 85.00, status: 'Paid', description: 'Vaccination' },
+            { id: 'INV004', patient: 'Alice Wonderland', patientId: 'P001', date: '2023-08-15', amount: 75.00, status: 'Paid', description: 'Blood Test' }
          ];
 
          let systemUsers = [ // User details for management section
@@ -1781,23 +1825,23 @@
         let dashboardChartInstance = null; // To store chart instance
 
         // --- DOM Elements ---
-        const loginWrapper = document.getElementById('login-wrapper'); // Wrapper for login screen
-        const loginScreen = document.getElementById('login-screen'); // Inner login box
+        const loginWrapper = document.getElementById('login-wrapper');
+        const loginScreen = document.getElementById('login-screen');
         const mainApp = document.getElementById('main-app');
         const loginForm = document.getElementById('login-form');
         const loginError = document.getElementById('login-error');
         const appSidebar = document.getElementById('app-sidebar');
-        const sidebarMenuList = document.getElementById('sidebar-menu-list'); // Target UL for filtering
-        const sidebarToggle = document.getElementById('sidebar-toggle'); // Mobile toggle
-        const appHeader = document.getElementById('app-header'); // Reference to header
+        const sidebarMenuList = document.getElementById('sidebar-menu-list');
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        const appHeader = document.getElementById('app-header');
         const appContent = document.getElementById('app-content');
         const pageTitle = document.getElementById('page-title');
         const userNameDisplay = document.getElementById('user-name-display');
         const userRoleDisplay = document.getElementById('user-role-display');
         const userInitials = document.getElementById('user-initials');
-        const themeToggle = document.getElementById('theme-checkbox'); // Theme toggle checkbox
+        const themeToggle = document.getElementById('theme-checkbox');
         const logoutButton = document.getElementById('logout-button');
-        let navLinks = []; // Initialize as empty, query later
+        let navLinks = [];
         const contentSections = document.querySelectorAll('.content-section');
         const patientTableBody = document.querySelector('#patient-table tbody');
         const appointmentTableBody = document.querySelector('#appointment-table tbody');
@@ -1807,6 +1851,7 @@
         const dashboardWidgets = document.getElementById('dashboard-widgets');
         const patientDetailsSection = document.getElementById('patient-details-section');
         const messageDetailView = document.getElementById('message-detail-view');
+        const addInvoiceButton = document.getElementById('add-invoice-button'); // New button
 
         const templateMenuItems = Array.from(sidebarMenuList.querySelectorAll('li[data-template-role]'));
 
@@ -1823,14 +1868,21 @@
         const messageForm = document.getElementById('message-form');
         const userModal = document.getElementById('user-modal');
         const userForm = document.getElementById('user-form');
-        const paymentModal = document.getElementById('payment-modal'); // New Modal
-        const paymentForm = document.getElementById('payment-form');   // New Form
+        const paymentModal = document.getElementById('payment-modal');
+        const paymentForm = document.getElementById('payment-form');
+        const invoiceModal = document.getElementById('invoice-modal'); // New Modal
+        const invoiceForm = document.getElementById('invoice-form');   // New Form
 
 
         // --- Helper Functions ---
         function generatePatientId() { return 'P' + String(Date.now()).slice(-4); }
         function generateMessageId() { return messages.length > 0 ? Math.max(...messages.map(m => m.id)) + 1 : 1; }
-        function generateInvoiceId() { return 'INV' + String(Date.now()).slice(-4); }
+        function generateInvoiceId() { // Ensure this one generates unique enough IDs
+            const prefix = 'INV';
+            const timestamp = String(Date.now()).slice(-6); // Last 6 digits of timestamp
+            const randomSuffix = Math.random().toString(36).substring(2, 6).toUpperCase(); // 4 random chars
+            return `${prefix}${timestamp}${randomSuffix}`;
+        }
 
         // --- LocalStorage Functions for Patients ---
         function loadPatientsFromStorage() {
@@ -1842,21 +1894,23 @@
                         patients = parsedPatients;
                     } else {
                         console.warn("Stored patient data is not an array, using default.");
-                        patients = JSON.parse(JSON.stringify(initialDefaultPatients)); // Deep copy default
+                        patients = JSON.parse(JSON.stringify(initialDefaultPatients));
                     }
                 } catch (e) {
                     console.error("Error parsing patients from localStorage:", e);
-                    patients = JSON.parse(JSON.stringify(initialDefaultPatients)); // Deep copy default
+                    patients = JSON.parse(JSON.stringify(initialDefaultPatients));
                 }
             } else {
-                patients = JSON.parse(JSON.stringify(initialDefaultPatients)); // Deep copy default
+                patients = JSON.parse(JSON.stringify(initialDefaultPatients));
             }
-            // Ensure patientId is set in nested billing objects after loading
             patients.forEach(p => {
                 if (p.billing && Array.isArray(p.billing)) {
-                    p.billing.forEach(b => b.patientId = p.id);
+                    p.billing.forEach(b => {
+                        b.patientId = p.id;
+                        if(!b.description) b.description = "N/A"; // Ensure description exists for old data
+                    });
                 } else {
-                    p.billing = []; // Ensure billing is an array
+                    p.billing = [];
                 }
             });
         }
@@ -1864,7 +1918,6 @@
         function savePatientsToStorage() {
             localStorage.setItem(localStorageKeyPatients, JSON.stringify(patients));
         }
-        // Load patients at script start
         loadPatientsFromStorage();
 
 
@@ -1886,7 +1939,10 @@
                 'user_edit': ['admin'],
                 'user_toggle_status': ['admin'],
                 'billing_view': ['admin', 'staff'],
-                'billing_record_payment': ['admin', 'staff'], // New permission
+                'billing_add_invoice': ['admin', 'staff'],      // New
+                'billing_edit_invoice': ['admin', 'staff'],     // New
+                'billing_delete_invoice': ['admin'],            // New
+                'billing_record_payment': ['admin', 'staff'],
                 'settings_view': ['admin'],
                 'dashboard_view': ['admin', 'doctor', 'staff'],
                 'view_dashboard': ['admin', 'doctor', 'staff'],
@@ -1978,15 +2034,37 @@
                         document.getElementById('user-status-select').value = user.status;
                      }
                  }
-            } else if (modalId === 'payment-modal' && data) { // For 'record' mode with payment data
+            } else if (modalId === 'payment-modal' && data) {
                 titleElement.textContent = 'Record Payment';
                 document.getElementById('payment-invoice-id').value = data.invoiceId;
                 document.getElementById('payment-invoice-id-display').textContent = data.invoiceId;
                 document.getElementById('payment-patient-name-display').textContent = data.patientName;
                 const amountDue = parseFloat(data.amountDue);
                 document.getElementById('payment-amount-due-display').textContent = `$${amountDue.toFixed(2)}`;
-                document.getElementById('payment-amount-received').value = amountDue.toFixed(2); // Pre-fill
-                document.getElementById('payment-amount-received').max = amountDue.toFixed(2); // Prevent overpayment in this simple setup
+                document.getElementById('payment-amount-received').value = amountDue.toFixed(2);
+                document.getElementById('payment-amount-received').max = amountDue.toFixed(2);
+            } else if (modalId === 'invoice-modal') { // New Modal Case
+                document.getElementById('invoice-id-edit').value = '';
+                const patientSelect = document.getElementById('invoice-patient');
+                patientSelect.innerHTML = '<option value="" disabled selected>Select Patient...</option>';
+                patients.forEach(p => {
+                     const option = document.createElement('option');
+                     option.value = p.id; option.textContent = `${p.name} (ID: ${p.id})`;
+                     patientSelect.appendChild(option);
+                 });
+                if (mode === 'edit' && data) { // data is the invoice object
+                    titleElement.textContent = 'Edit Invoice';
+                    document.getElementById('invoice-id-edit').value = data.id;
+                    patientSelect.value = data.patientId;
+                    document.getElementById('invoice-date').value = data.date;
+                    document.getElementById('invoice-description').value = data.description || '';
+                    document.getElementById('invoice-amount').value = data.amount.toFixed(2);
+                    document.getElementById('invoice-status').value = data.status;
+                } else { // Add mode
+                    titleElement.textContent = 'Add New Invoice';
+                    document.getElementById('invoice-date').valueAsDate = new Date(); // Default to today
+                    document.getElementById('invoice-status').value = 'Pending'; // Default status
+                }
             }
             modal.classList.add('visible');
             document.body.style.overflow = 'hidden';
@@ -2010,13 +2088,11 @@
             loginError.textContent = '';
             const loginButton = loginForm.querySelector('.login-button');
             loginButton.disabled = true;
-
             const username = loginForm.username.value;
             const password = loginForm.password.value;
             const role = loginForm.role.value;
             const user = users[username];
             const systemUser = systemUsers.find(su => su.username === username);
-
             setTimeout(() => {
                 if (user && user.password === password && user.role === role && systemUser) {
                     if (systemUser.status !== 'Active') {
@@ -2071,7 +2147,6 @@
             userRoleDisplay.textContent = currentUser.role.charAt(0).toUpperCase() + currentUser.role.slice(1);
             userRoleDisplay.className = `user-role ${currentUser.role}`;
             userInitials.textContent = currentUser.initials || currentUser.name.split(' ').map(n=>n[0]).join('').toUpperCase();
-
             sidebarMenuList.innerHTML = '';
             templateMenuItems.forEach(templateItem => {
                 const link = templateItem.querySelector('a.nav-link[data-target]');
@@ -2087,16 +2162,15 @@
             });
             navLinks = sidebarMenuList.querySelectorAll('.nav-link');
             addNavLinkListeners();
-
             contentSections.forEach(section => {
                  const sectionId = section.id.replace('-section', '');
                  const correspondingLink = sidebarMenuList.querySelector(`.nav-link[data-target="${sectionId}"]`);
             });
-
             const addPatientBtn = document.getElementById('add-patient-button'); if(addPatientBtn) addPatientBtn.disabled = !hasPermission('patient_add');
             const addApptBtn = document.getElementById('add-appointment-button'); if(addApptBtn) addApptBtn.disabled = !hasPermission('appointment_add');
             const composeMsgBtn = document.getElementById('compose-message-button'); if(composeMsgBtn) composeMsgBtn.disabled = !hasPermission('message_compose');
             const addUserBtn = document.getElementById('add-user-button'); if(addUserBtn) addUserBtn.disabled = !hasPermission('user_add');
+            if(addInvoiceButton) addInvoiceButton.disabled = !hasPermission('billing_add_invoice'); // Control new invoice button
 
             if (hasPermission('view_dashboard')) {
                  const activeSection = document.querySelector('.content-section.active');
@@ -2125,7 +2199,6 @@
              }
             const viewPermission = `view_${targetViewId.replace('-', '_')}`;
             const effectivePermission = (targetViewId === 'patient-details') ? 'view_patients' : viewPermission;
-
             if (!hasPermission(effectivePermission)) {
                  console.warn(`Access Denied: Role '${currentUser.role}' cannot view section '${targetViewId}'. Required permission: '${effectivePermission}'`);
                  alert("Access Denied: You do not have permission to view this section.");
@@ -2138,10 +2211,8 @@
                   }
                  return;
              }
-
             contentSections.forEach(section => section.classList.remove('active'));
             const targetSection = document.getElementById(`${targetViewId}-section`);
-
             if (targetSection) {
                 targetSection.classList.add('active');
                 currentView = targetViewId;
@@ -2152,9 +2223,8 @@
                      const iconHTML = activeLink.querySelector('i')?.outerHTML || '';
                      pageTitle.innerHTML = `${iconHTML} ${spanContent}`;
                      activeLink.classList.add('active');
-                 } else if (targetViewId === 'patient-details') {
-                    // Title set in loadPatientDetails
-                 } else {
+                 } else if (targetViewId === 'patient-details') { /* Title set in loadPatientDetails */ }
+                 else {
                      const capitalized = targetViewId.charAt(0).toUpperCase() + targetViewId.slice(1).replace('-', ' ');
                      pageTitle.innerHTML = `<i class="fas fa-question-circle"></i> ${capitalized}`;
                  }
@@ -2185,7 +2255,6 @@
              }).length;
              const unreadMessagesCount = messages.filter(m => m.unread).length;
              const totalRevenue = billingData.reduce((sum, inv) => sum + (inv.status === 'Paid' ? inv.amount : 0), 0);
-
              const widgetDefinitions = [
                  { permission: 'view_patients', target: 'patients', icon: 'fa-users', title: `${patients.length} Active Patients`, text: 'Managed in the system', colorClass: 'patients' },
                  { permission: 'view_appointments', target: 'appointments', icon: 'fa-calendar-check', title: `${upcomingAppointmentsCount} Upcoming Appts`, text: 'Scheduled & active', colorClass: 'appointments' },
@@ -2205,9 +2274,7 @@
             const chartCanvas = document.getElementById('appointmentChart');
             if (chartCanvas) {
                 const ctx = chartCanvas.getContext('2d');
-                if (dashboardChartInstance) {
-                    dashboardChartInstance.destroy();
-                }
+                if (dashboardChartInstance) { dashboardChartInstance.destroy(); }
                 const computedStyle = getComputedStyle(document.documentElement);
                 const primaryColorValue = computedStyle.getPropertyValue('--primary-color').trim();
                 const gridColorValue = computedStyle.getPropertyValue('--border-color').trim();
@@ -2218,21 +2285,11 @@
                     type: 'line',
                     data: {
                         labels: labels,
-                        datasets: [{
-                             label: 'Appointments Scheduled (Demo)',
-                             data: data,
-                             borderColor: primaryColorValue || '#0a7f9c',
-                             backgroundColor: primaryColorValue ? primaryColorValue + '1A' : 'rgba(10, 127, 156, 0.1)',
-                             fill: true,
-                             tension: 0.4 }]
+                        datasets: [{ label: 'Appointments Scheduled (Demo)', data: data, borderColor: primaryColorValue || '#0a7f9c', backgroundColor: primaryColorValue ? primaryColorValue + '1A' : 'rgba(10, 127, 156, 0.1)', fill: true, tension: 0.4 }]
                     },
                     options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            y: { beginAtZero: true, suggestedMax: Math.max(...data) + 2, grid: { color: gridColorValue }, ticks: { color: textColorValue } },
-                            x: { grid: { color: gridColorValue }, ticks: { color: textColorValue } }
-                         },
+                        responsive: true, maintainAspectRatio: false,
+                        scales: { y: { beginAtZero: true, suggestedMax: Math.max(...data) + 2, grid: { color: gridColorValue }, ticks: { color: textColorValue } }, x: { grid: { color: gridColorValue }, ticks: { color: textColorValue } } },
                         plugins: { legend: { display: false } }
                     }
                  });
@@ -2246,11 +2303,7 @@
              const canDelete = hasPermission('patient_delete');
              const canViewDetails = hasPermission('patient_view_details');
              const searchTerm = document.getElementById('patient-search').value.toLowerCase();
-             const filteredPatients = patients.filter(p =>
-                p.name.toLowerCase().includes(searchTerm) ||
-                p.id.toLowerCase().includes(searchTerm) ||
-                p.contact.toLowerCase().includes(searchTerm)
-             );
+             const filteredPatients = patients.filter(p => p.name.toLowerCase().includes(searchTerm) || p.id.toLowerCase().includes(searchTerm) || p.contact.toLowerCase().includes(searchTerm));
              if (filteredPatients.length === 0) {
                 patientTableBody.innerHTML = `<tr><td colspan="6">No patients found${searchTerm ? ' matching "' + searchTerm + '"' : ''}.</td></tr>`;
                 return;
@@ -2258,11 +2311,7 @@
              filteredPatients.forEach(p => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${p.id}</td>
-                    <td>${p.name}</td>
-                    <td>${p.dob}</td>
-                    <td>${p.contact}</td>
-                    <td>${p.lastVisit || 'N/A'}</td>
+                    <td>${p.id}</td><td>${p.name}</td><td>${p.dob}</td><td>${p.contact}</td><td>${p.lastVisit || 'N/A'}</td>
                     <td class="action-buttons no-print">
                         <button class="btn-view" title="View Details" data-patient-id="${p.id}" ${!canViewDetails ? 'disabled' : ''}><i class="fas fa-eye"></i></button>
                         <button class="btn-edit" title="Edit Patient" data-patient-id="${p.id}" ${!canEdit ? 'disabled' : ''}><i class="fas fa-edit"></i></button>
@@ -2280,29 +2329,22 @@
             const canPrint = hasPermission('print_record');
              const patientDetailsContainer = patientDetailsSection.querySelector('#printable-patient-record');
              const actionButtonContainer = patientDetailsSection.querySelector('.action-buttons');
-             if (!patientDetailsContainer || !actionButtonContainer) {
-                  console.error("Required elements missing in #patient-details-section");
-                  return;
-              }
+             if (!patientDetailsContainer || !actionButtonContainer) { console.error("Required elements missing in #patient-details-section"); return; }
             if (!patient) {
-                patientDetailsContainer.innerHTML = '';
-                actionButtonContainer.innerHTML = '';
+                patientDetailsContainer.innerHTML = ''; actionButtonContainer.innerHTML = '';
                 patientDetailsContainer.innerHTML = `<div class="card"><p>Error: Patient not found.</p></div>`;
-                pageTitle.innerHTML = `<i class="fas fa-exclamation-circle"></i> Not Found`;
-                activePatientId = null;
-                return;
+                pageTitle.innerHTML = `<i class="fas fa-exclamation-circle"></i> Not Found`; activePatientId = null; return;
             }
              pageTitle.innerHTML = `<i class="fas fa-user-injured"></i> Record: ${patient.name}`;
              const initials = patient.name.split(' ').map(n=>n[0]).join('').toUpperCase();
-             const patientAppointments = appointments
-                .filter(a => a.patientId === patient.id)
+             const patientAppointments = appointments.filter(a => a.patientId === patient.id)
                 .sort((a,b) => { try { return new Date(b.date.replace(' ', 'T')) - new Date(a.date.replace(' ', 'T'));} catch(e){return 0;} })
-                .map(a => `<li>${a.date} - ${a.doctor} (${a.reason || 'N/A'}) - <span style="font-weight:bold;">${a.status}</span></li>`)
-                .join('');
-             const patientBilling = billingData // Use global billingData for consistency
-                .filter(b => b.patientId === patient.id)
+                .map(a => `<li>${a.date} - ${a.doctor} (${a.reason || 'N/A'}) - <span style="font-weight:bold;">${a.status}</span></li>`).join('');
+
+             // Use patient.billing here which should be synced from billingData
+             const patientBillingRecords = (patient.billing || [])
                 .sort((a,b) => { try{ return new Date(b.date) - new Date(a.date);} catch(e){return 0;} })
-                .map(b => `<tr><td>${b.id}</td><td>${b.date}</td><td>$${b.amount.toFixed(2)}</td><td><span style="font-weight:bold; color: ${b.status === 'Paid' ? 'var(--success-color)' : (b.status === 'Pending' ? 'var(--warning-color)' : 'var(--danger-color)')};">${b.status}</span></td></tr>`)
+                .map(b => `<tr><td>${b.id}</td><td>${b.date}</td><td>${b.description || 'N/A'}</td><td>$${b.amount.toFixed(2)}</td><td><span style="font-weight:bold; color: ${b.status === 'Paid' ? 'var(--success-color)' : (b.status === 'Pending' ? 'var(--warning-color)' : 'var(--danger-color)')};">${b.status}</span></td></tr>`)
                 .join('');
 
              patientDetailsContainer.innerHTML = `
@@ -2310,11 +2352,8 @@
                     <div class="patient-header">
                         <div class="patient-avatar">${initials}</div>
                         <div class="patient-info">
-                            <h3>${patient.name}</h3>
-                            <p><strong>ID:</strong> ${patient.id}</p>
-                            <p><strong>DOB:</strong> ${patient.dob}</p>
-                            <p><strong>Contact:</strong> ${patient.contact}</p>
-                            <p><strong>Last Visit:</strong> ${patient.lastVisit || 'N/A'}</p>
+                            <h3>${patient.name}</h3><p><strong>ID:</strong> ${patient.id}</p><p><strong>DOB:</strong> ${patient.dob}</p>
+                            <p><strong>Contact:</strong> ${patient.contact}</p><p><strong>Last Visit:</strong> ${patient.lastVisit || 'N/A'}</p>
                         </div>
                     </div>
                     <div class="tab-navigation no-print">
@@ -2324,55 +2363,36 @@
                     </div>
                     <div id="history-tab" class="tab-content active">
                         ${canPrint ? `<button class="btn btn-secondary btn-sm btn-print-tab no-print" data-print-target="history-tab" title="Print History"><i class="fas fa-print"></i> Print</button>` : ''}
-                        <h4>Medical History & Notes</h4>
-                        <p style="white-space: pre-wrap;">${patient.medicalHistory ? patient.medicalHistory : 'No history recorded.'}</p>
+                        <h4>Medical History & Notes</h4><p style="white-space: pre-wrap;">${patient.medicalHistory ? patient.medicalHistory : 'No history recorded.'}</p>
                     </div>
                     <div id="appointments-tab" class="tab-content">
                          ${canPrint ? `<button class="btn btn-secondary btn-sm btn-print-tab no-print" data-print-target="appointments-tab" title="Print Appointments"><i class="fas fa-print"></i> Print</button>` : ''}
-                        <h4>Appointments</h4>
-                        ${patientAppointments ? `<ul>${patientAppointments}</ul>` : '<p>No appointments found.</p>'}
+                        <h4>Appointments</h4>${patientAppointments ? `<ul>${patientAppointments}</ul>` : '<p>No appointments found.</p>'}
                     </div>
                     <div id="billing-tab" class="tab-content">
                          ${canPrint ? `<button class="btn btn-secondary btn-sm btn-print-tab no-print" data-print-target="billing-tab" title="Print Billing"><i class="fas fa-print"></i> Print</button>` : ''}
-                        <h4>Billing</h4>
-                        ${patientBilling ? `
-                            <div style="overflow-x: auto;">
-                                <table class="data-table">
-                                    <thead><tr><th>ID</th><th>Date</th><th>Amount</th><th>Status</th></tr></thead>
-                                    <tbody>${patientBilling}</tbody>
-                                </table>
-                            </div>
-                        ` : '<p>No billing records found.</p>'}
+                        <h4>Billing</h4>${patientBillingRecords ? `<div style="overflow-x: auto;"><table class="data-table"><thead><tr><th>ID</th><th>Date</th><th>Description</th><th>Amount</th><th>Status</th></tr></thead><tbody>${patientBillingRecords}</tbody></table></div>` : '<p>No billing records found.</p>'}
                     </div>
                 </div>`;
             actionButtonContainer.innerHTML = '';
             if (canShare) {
-                const shareButton = document.createElement('button');
-                shareButton.className = 'btn btn-secondary btn-share-record no-print';
-                shareButton.innerHTML = '<i class="fas fa-share-alt"></i> Share Secure Link';
-                shareButton.onclick = showShareModal;
+                const shareButton = document.createElement('button'); shareButton.className = 'btn btn-secondary btn-share-record no-print';
+                shareButton.innerHTML = '<i class="fas fa-share-alt"></i> Share Secure Link'; shareButton.onclick = showShareModal;
                 actionButtonContainer.appendChild(shareButton);
             }
             setupPatientDetailInteractions();
         }
 
          function setupPatientDetailInteractions() {
-            const detailSection = document.getElementById('patient-details-section');
-            if (!detailSection) return;
-            const tabButtons = detailSection.querySelectorAll('.tab-button');
-            const tabContents = detailSection.querySelectorAll('.tab-content');
-             tabButtons.forEach(button => {
-                const newButton = button.cloneNode(true);
-                button.parentNode.replaceChild(newButton, button);
-             });
+            const detailSection = document.getElementById('patient-details-section'); if (!detailSection) return;
+            const tabButtons = detailSection.querySelectorAll('.tab-button'); const tabContents = detailSection.querySelectorAll('.tab-content');
+             tabButtons.forEach(button => { const newButton = button.cloneNode(true); button.parentNode.replaceChild(newButton, button); });
              const newTabButtons = detailSection.querySelectorAll('.tab-button');
             newTabButtons.forEach(button => {
                  button.addEventListener('click', () => {
                      const targetTab = button.dataset.tab;
-                     newTabButtons.forEach(btn => btn.classList.remove('active'));
-                     tabContents.forEach(content => content.classList.remove('active'));
-                     button.classList.add('active');
-                     const targetContent = detailSection.querySelector(`#${targetTab}-tab`);
+                     newTabButtons.forEach(btn => btn.classList.remove('active')); tabContents.forEach(content => content.classList.remove('active'));
+                     button.classList.add('active'); const targetContent = detailSection.querySelector(`#${targetTab}-tab`);
                      if(targetContent) targetContent.classList.add('active');
                  });
             });
@@ -2381,27 +2401,15 @@
         function loadAppointmentData() {
              if (!hasPermission('view_appointments')) return;
              appointmentTableBody.innerHTML = '';
-             const canEdit = hasPermission('appointment_edit');
-             const canCancel = hasPermission('appointment_cancel');
-             const sortedAppointments = appointments.sort((a, b) => {
-                 try { return new Date(a.date.replace(' ', 'T')) - new Date(b.date.replace(' ', 'T')); }
-                 catch(e) { return 0; }
-             });
-             if (sortedAppointments.length === 0) {
-                 appointmentTableBody.innerHTML = `<tr><td colspan="6">No appointments scheduled.</td></tr>`;
-                 return;
-             }
+             const canEdit = hasPermission('appointment_edit'); const canCancel = hasPermission('appointment_cancel');
+             const sortedAppointments = appointments.sort((a, b) => { try { return new Date(a.date.replace(' ', 'T')) - new Date(b.date.replace(' ', 'T')); } catch(e) { return 0; } });
+             if (sortedAppointments.length === 0) { appointmentTableBody.innerHTML = `<tr><td colspan="6">No appointments scheduled.</td></tr>`; return; }
              sortedAppointments.forEach((a, index) => {
                  const row = document.createElement('tr');
                  const isPastOrCancelled = a.status === 'Completed' || a.status === 'Cancelled';
-                 let statusColor = 'var(--warning-color)';
-                 if (a.status === 'Confirmed') statusColor = 'var(--success-color)';
-                 if (isPastOrCancelled) statusColor = 'var(--text-muted)';
+                 let statusColor = 'var(--warning-color)'; if (a.status === 'Confirmed') statusColor = 'var(--success-color)'; if (isPastOrCancelled) statusColor = 'var(--text-muted)';
                  row.innerHTML = `
-                    <td>${a.date || 'N/A'}</td>
-                    <td>${a.patient || 'N/A'} (ID: ${a.patientId || 'N/A'})</td>
-                    <td>${a.doctor || 'N/A'}</td>
-                    <td>${a.reason || 'N/A'}</td>
+                    <td>${a.date || 'N/A'}</td><td>${a.patient || 'N/A'} (ID: ${a.patientId || 'N/A'})</td><td>${a.doctor || 'N/A'}</td><td>${a.reason || 'N/A'}</td>
                     <td><span style="color: ${statusColor}; font-weight: bold;">${a.status || 'N/A'}</span></td>
                     <td class="action-buttons no-print">
                         <button class="btn-edit" title="Edit/Reschedule" data-appointment-index="${appointments.findIndex(app => app === a)}" ${!canEdit || isPastOrCancelled ? 'disabled' : ''}><i class="fas fa-edit"></i></button>
@@ -2414,47 +2422,31 @@
 
         function loadMessageData() {
              if (!hasPermission('view_messages')) return;
-             messageListUl.innerHTML = '';
-             messageDetailView.style.display = 'none';
+             messageListUl.innerHTML = ''; messageDetailView.style.display = 'none';
              const canView = hasPermission('message_view');
              const sortedMessages = messages.sort((a, b) => { try{ return new Date(b.date.replace(' ', 'T')) - new Date(a.date.replace(' ', 'T')); } catch(e){ return 0; } } );
-             if (sortedMessages.length === 0) {
-                 messageListUl.innerHTML = '<li class="message-item"><p>No messages in your inbox.</p></li>';
-                 return;
-             }
+             if (sortedMessages.length === 0) { messageListUl.innerHTML = '<li class="message-item"><p>No messages in your inbox.</p></li>'; return; }
              sortedMessages.forEach(m => {
-                 const li = document.createElement('li');
-                 li.className = `message-item ${m.unread ? 'unread' : ''}`;
-                 li.setAttribute('data-message-id', m.id);
+                 const li = document.createElement('li'); li.className = `message-item ${m.unread ? 'unread' : ''}`; li.setAttribute('data-message-id', m.id);
                  li.innerHTML = `
                      <div class="message-sender">From: ${m.sender} (To: ${m.recipient || 'Unknown'})</div>
-                     <div class="message-subject">${m.subject || '(No Subject)'}</div>
-                     <div class="message-date">${m.date || 'N/A'}</div>`;
-                 if (canView) {
-                    li.style.cursor = 'pointer';
-                    li.title = 'Click to read';
-                 } else {
-                     li.style.cursor = 'not-allowed';
-                     li.title = 'Read permission required';
-                 }
+                     <div class="message-subject">${m.subject || '(No Subject)'}</div><div class="message-date">${m.date || 'N/A'}</div>`;
+                 if (canView) { li.style.cursor = 'pointer'; li.title = 'Click to read'; } else { li.style.cursor = 'not-allowed'; li.title = 'Read permission required'; }
                  messageListUl.appendChild(li);
              });
              document.getElementById('compose-message-button').disabled = !hasPermission('message_compose');
         }
 
         function showMessageDetail(messageId) {
-            const message = messages.find(m => m.id === messageId);
-            if (!message || !hasPermission('message_view')) return;
+            const message = messages.find(m => m.id === messageId); if (!message || !hasPermission('message_view')) return;
             document.getElementById('message-detail-subject').textContent = message.subject || '(No Subject)';
             document.getElementById('message-detail-sender').textContent = `From: ${message.sender} (To: ${message.recipient || 'Unknown'})`;
             document.getElementById('message-detail-date').textContent = ` (${message.date || 'N/A'})`;
             document.getElementById('message-detail-body').textContent = message.body || '(No message body)';
             messageDetailView.style.display = 'block';
              if(message.unread) {
-                 message.unread = false;
-                 const listItem = messageListUl.querySelector(`.message-item[data-message-id="${messageId}"]`);
-                 if (listItem) listItem.classList.remove('unread');
-                 if(currentView === 'dashboard'){ loadDashboardData(); }
+                 message.unread = false; const listItem = messageListUl.querySelector(`.message-item[data-message-id="${messageId}"]`);
+                 if (listItem) listItem.classList.remove('unread'); if(currentView === 'dashboard'){ loadDashboardData(); }
              }
             const listItem = messageListUl.querySelector(`.message-item[data-message-id="${messageId}"]`);
             if (listItem) { listItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
@@ -2464,38 +2456,33 @@
             if(!hasPermission('view_billing')) return;
             billingTableBody.innerHTML = '';
              const sortedBilling = billingData.sort((a,b) => { try { return new Date(b.date) - new Date(a.date); } catch(e){ return 0; } } );
-             if (sortedBilling.length === 0) {
-                billingTableBody.innerHTML = `<tr><td colspan="6">No billing statements found.</td></tr>`;
-                return;
-             }
+             if (sortedBilling.length === 0) { billingTableBody.innerHTML = `<tr><td colspan="6">No billing statements found.</td></tr>`; return; }
+
+             const canRecordPayment = hasPermission('billing_record_payment');
+             const canEditInvoice = hasPermission('billing_edit_invoice');
+             const canDeleteInvoice = hasPermission('billing_delete_invoice');
+
              sortedBilling.forEach(b => {
                  const row = document.createElement('tr');
                  const statusColor = b.status === 'Paid' ? 'var(--success-color)' : (b.status === 'Pending' ? 'var(--warning-color)' : 'var(--danger-color)');
-                 const canRecordPayment = hasPermission('billing_record_payment');
                  row.innerHTML = `
-                     <td>${b.id}</td>
-                     <td>${b.patient || 'N/A'} (ID: ${b.patientId || 'N/A'})</td>
-                     <td>${b.date}</td>
-                     <td>$${b.amount.toFixed(2)}</td>
+                     <td>${b.id}</td><td>${b.patient || 'N/A'} (ID: ${b.patientId || 'N/A'})</td><td>${b.date}</td><td>$${b.amount.toFixed(2)}</td>
                      <td><span style="color: ${statusColor}; font-weight: bold;">${b.status}</span></td>
                      <td class="action-buttons no-print">
-                         <button class="btn-view" title="View Details (Not Implemented)" disabled><i class="fas fa-eye"></i></button>
-                         ${b.status === 'Pending' ? `<button class="btn-edit btn-record-payment" title="Record Payment" data-invoice-id="${b.id}" data-patient-name="${b.patient}" data-amount-due="${b.amount.toFixed(2)}" ${!canRecordPayment ? 'disabled' : ''}><i class="fas fa-credit-card"></i></button>` : ''}
-                         <button class="btn-print" title="Print Statement (Not Implemented)" disabled><i class="fas fa-print"></i></button>
+                         <button class="btn-edit" title="Edit Invoice" data-invoice-id="${b.id}" ${!canEditInvoice ? 'disabled' : ''}><i class="fas fa-file-pen"></i></button>
+                         ${b.status === 'Pending' ? `<button class="btn-record-payment" title="Record Payment" data-invoice-id="${b.id}" data-patient-name="${b.patient}" data-amount-due="${b.amount.toFixed(2)}" ${!canRecordPayment ? 'disabled' : ''}><i class="fas fa-credit-card"></i></button>` : ''}
+                         <button class="btn-delete" title="Delete Invoice" data-invoice-id="${b.id}" ${!canDeleteInvoice ? 'disabled' : ''}><i class="fas fa-trash-alt"></i></button>
                      </td>`;
                  billingTableBody.appendChild(row);
              });
+             if(addInvoiceButton) addInvoiceButton.disabled = !hasPermission('billing_add_invoice');
         }
 
         function loadUserData() {
              if (!hasPermission('view_user-management')) return;
              userTableBody.innerHTML = '';
-             const canEdit = hasPermission('user_edit');
-             const canToggle = hasPermission('user_toggle_status');
-             if (systemUsers.length === 0) {
-                 userTableBody.innerHTML = `<tr><td colspan="6">No users found in the system.</td></tr>`;
-                 return;
-             }
+             const canEdit = hasPermission('user_edit'); const canToggle = hasPermission('user_toggle_status');
+             if (systemUsers.length === 0) { userTableBody.innerHTML = `<tr><td colspan="6">No users found in the system.</td></tr>`; return; }
              systemUsers.forEach(u => {
                  const row = document.createElement('tr');
                  const roleDisplay = u.role.charAt(0).toUpperCase() + u.role.slice(1);
@@ -2503,10 +2490,7 @@
                  const currentSystemUsername = systemUsers.find(su => su.name === currentUser.name)?.username;
                  const isCurrentUser = u.username === currentSystemUsername;
                  row.innerHTML = `
-                     <td>${u.username}</td>
-                     <td>${u.name}</td>
-                     <td><span class="user-role ${u.role}">${roleDisplay}</span></td>
-                     <td>${u.lastLogin || 'Never'}</td>
+                     <td>${u.username}</td><td>${u.name}</td><td><span class="user-role ${u.role}">${roleDisplay}</span></td><td>${u.lastLogin || 'Never'}</td>
                      <td><span style="color: ${statusColor}; font-weight: bold;">${u.status}</span></td>
                      <td class="action-buttons no-print">
                          <button class="btn-edit" title="Edit User" data-user-username="${u.username}" ${!canEdit ? 'disabled' : ''}><i class="fas fa-edit"></i></button>
@@ -2520,14 +2504,11 @@
 
         function handleSavePatient(event) {
             event.preventDefault();
-            const patientId = document.getElementById('patient-id-edit').value;
-            const isEditing = !!patientId;
+            const patientId = document.getElementById('patient-id-edit').value; const isEditing = !!patientId;
             if (isEditing && !hasPermission('patient_edit')) { alert("Permission denied to edit patients."); return; }
             if (!isEditing && !hasPermission('patient_add')) { alert("Permission denied to add patients."); return; }
-            const name = document.getElementById('patient-name').value.trim();
-            const dob = document.getElementById('patient-dob').value;
-            const contact = document.getElementById('patient-contact').value.trim();
-            const medicalHistory = document.getElementById('patient-history').value.trim();
+            const name = document.getElementById('patient-name').value.trim(); const dob = document.getElementById('patient-dob').value;
+            const contact = document.getElementById('patient-contact').value.trim(); const medicalHistory = document.getElementById('patient-history').value.trim();
             if (!name || !dob || !contact) { alert("Name, Date of Birth, and Contact are required."); return; }
             let originalName = null;
             if (isEditing) {
@@ -2540,181 +2521,194 @@
                 } else { alert('Error: Patient to edit not found.'); return; }
             } else {
                 const newPatient = { id: generatePatientId(), name, dob, contact, medicalHistory, lastVisit: null, billing: [] };
-                patients.push(newPatient);
-                alert('Patient added successfully.');
+                patients.push(newPatient); alert('Patient added successfully.');
             }
-            savePatientsToStorage(); // Save to localStorage
-            hideModal('patient-modal');
-            loadPatientData();
-            loadDashboardData();
-             if (isEditing && currentView === 'patient-details' && activePatientId === patientId) {
-                 loadPatientDetails(patientId);
-             } else if (currentView === 'patient-details' && !isEditing) {
-                  navigateTo('patients');
-              }
+            savePatientsToStorage(); hideModal('patient-modal'); loadPatientData(); loadDashboardData();
+             if (isEditing && currentView === 'patient-details' && activePatientId === patientId) { loadPatientDetails(patientId); }
+             else if (currentView === 'patient-details' && !isEditing) { navigateTo('patients'); }
         }
 
         function handleSaveAppointment(event) {
             event.preventDefault();
-            const apptIndexStr = document.getElementById('appointment-index-edit').value;
-            const isEditing = apptIndexStr !== '';
+            const apptIndexStr = document.getElementById('appointment-index-edit').value; const isEditing = apptIndexStr !== '';
             const apptIndex = isEditing ? parseInt(apptIndexStr, 10) : -1;
             if (isEditing && !hasPermission('appointment_edit')) { alert("Permission denied to edit appointments."); return; }
             if (!isEditing && !hasPermission('appointment_add')) { alert("Permission denied to add appointments."); return; }
-            const patientId = document.getElementById('appointment-patient').value;
-            const datetime = document.getElementById('appointment-datetime').value;
-            const doctor = document.getElementById('appointment-doctor').value;
-            const reason = document.getElementById('appointment-reason').value.trim();
+            const patientId = document.getElementById('appointment-patient').value; const datetime = document.getElementById('appointment-datetime').value;
+            const doctor = document.getElementById('appointment-doctor').value; const reason = document.getElementById('appointment-reason').value.trim();
             const status = document.getElementById('appointment-status').value;
             if (!patientId || !datetime || !doctor || !reason) { alert("Patient, Date/Time, Doctor, and Reason are required."); return; }
             const patientName = patients.find(p=> p.id === patientId)?.name || 'Unknown Patient';
             const formattedDate = datetime.replace('T', ' ');
             const appointmentData = { date: formattedDate, patientId, patient: patientName, doctor, reason, status };
             if (isEditing && apptIndex >= 0 && apptIndex < appointments.length) {
-                appointments[apptIndex] = appointmentData;
-                alert('Appointment updated successfully.');
-            } else {
-                appointments.push(appointmentData);
-                 alert('Appointment scheduled successfully.');
-            }
-            hideModal('appointment-modal');
-            loadAppointmentData();
-            loadDashboardData();
-            if (currentView === 'patient-details' && activePatientId === patientId) {
-                 loadPatientDetails(activePatientId);
-             }
+                appointments[apptIndex] = appointmentData; alert('Appointment updated successfully.');
+            } else { appointments.push(appointmentData); alert('Appointment scheduled successfully.'); }
+            hideModal('appointment-modal'); loadAppointmentData(); loadDashboardData();
+            if (currentView === 'patient-details' && activePatientId === patientId) { loadPatientDetails(activePatientId); }
         }
 
         function handleSendMessage(event) {
             event.preventDefault();
             if (!hasPermission('message_compose')) { alert("Permission denied to send messages."); return; }
-            const recipient = document.getElementById('message-recipient').value.trim();
-            const subject = document.getElementById('message-subject').value.trim();
+            const recipient = document.getElementById('message-recipient').value.trim(); const subject = document.getElementById('message-subject').value.trim();
             const body = document.getElementById('message-body').value.trim();
             if (!recipient || !subject || !body) { alert("Recipient, Subject, and Message Body are required."); return; }
-            const newMessage = {
-                id: generateMessageId(),
-                sender: currentUser.name,
-                recipient, subject, body,
-                date: new Date().toISOString().slice(0, 16).replace('T', ' '),
-                unread: true
-            };
-            messages.push(newMessage);
-            hideModal('message-modal');
-            loadMessageData();
-            alert('Message sent (simulated).');
-            loadDashboardData();
+            const newMessage = { id: generateMessageId(), sender: currentUser.name, recipient, subject, body, date: new Date().toISOString().slice(0, 16).replace('T', ' '), unread: true };
+            messages.push(newMessage); hideModal('message-modal'); loadMessageData(); alert('Message sent (simulated).'); loadDashboardData();
         }
 
         function handleSaveUser(event) {
             event.preventDefault();
-            const usernameEdit = document.getElementById('user-username-edit').value;
-            const isEditing = !!usernameEdit;
+            const usernameEdit = document.getElementById('user-username-edit').value; const isEditing = !!usernameEdit;
             if (isEditing && !hasPermission('user_edit')) { alert("Permission denied to edit users."); return; }
             if (!isEditing && !hasPermission('user_add')) { alert("Permission denied to add users."); return; }
-            const username = document.getElementById('user-username').value.trim();
-            const name = document.getElementById('user-fullname').value.trim();
-            const password = document.getElementById('user-password').value;
-            const role = document.getElementById('user-role-select').value;
+            const username = document.getElementById('user-username').value.trim(); const name = document.getElementById('user-fullname').value.trim();
+            const password = document.getElementById('user-password').value; const role = document.getElementById('user-role-select').value;
             const status = document.getElementById('user-status-select').value;
             if (!username || !name) { alert("Username and Full Name are required."); return; }
              const currentSystemUsername = systemUsers.find(u => u.name === currentUser.name)?.username;
-             if (isEditing && usernameEdit === currentSystemUsername && status === 'Inactive') {
-                 alert("You cannot deactivate your own account via this form."); return;
-             }
+             if (isEditing && usernameEdit === currentSystemUsername && status === 'Inactive') { alert("You cannot deactivate your own account via this form."); return; }
             if (isEditing) {
                 const userIndex = systemUsers.findIndex(u => u.username === usernameEdit);
                 if (userIndex > -1) {
-                    systemUsers[userIndex].name = name;
-                    systemUsers[userIndex].role = role;
-                    systemUsers[userIndex].status = status;
+                    systemUsers[userIndex].name = name; systemUsers[userIndex].role = role; systemUsers[userIndex].status = status;
                      const loginKey = Object.keys(users).find(key => users[key].name === systemUsers[userIndex].name || key === usernameEdit);
                     if (loginKey && users[loginKey]) {
-                         users[loginKey].name = name;
-                         users[loginKey].role = role;
-                         users[loginKey].initials = name.split(' ').map(n=>n[0]).join('').toUpperCase();
-                         if (password) {
-                             users[loginKey].password = password;
-                             alert('User details and password updated successfully.');
-                         } else {
-                            alert('User details updated successfully (password unchanged).');
-                         }
+                         users[loginKey].name = name; users[loginKey].role = role; users[loginKey].initials = name.split(' ').map(n=>n[0]).join('').toUpperCase();
+                         if (password) { users[loginKey].password = password; alert('User details and password updated successfully.'); }
+                         else { alert('User details updated successfully (password unchanged).'); }
                          if (currentSystemUsername === usernameEdit) {
-                              currentUser.name = name;
-                              currentUser.role = role;
-                              currentUser.initials = users[loginKey].initials;
-                              initializeUI();
+                              currentUser.name = name; currentUser.role = role; currentUser.initials = users[loginKey].initials; initializeUI();
                           }
                      } else { alert('Warning: User found in system list but corresponding login entry mismatch or missing.'); }
                  } else { alert('Error: User to edit not found.'); return; }
             } else {
-                if (systemUsers.some(u => u.username === username) || users[username]) {
-                    alert(`Username '${username}' already exists. Please choose a different one.`); return;
-                }
-                if (!password) {
-                     alert(`A password is required for new users.`); return;
-                }
-                const newUserSystem = { username, name, role, status, lastLogin: null };
-                systemUsers.push(newUserSystem);
+                if (systemUsers.some(u => u.username === username) || users[username]) { alert(`Username '${username}' already exists. Please choose a different one.`); return; }
+                if (!password) { alert(`A password is required for new users.`); return; }
+                const newUserSystem = { username, name, role, status, lastLogin: null }; systemUsers.push(newUserSystem);
                 users[username] = { password: password, name: name, role: role, initials: name.split(' ').map(n=>n[0]).join('').toUpperCase() };
                  alert('New user added successfully.');
             }
-            hideModal('user-modal');
-            loadUserData();
+            hideModal('user-modal'); loadUserData();
         }
 
-        // New: Handle Payment Recording
         function handleRecordPayment(event) {
             event.preventDefault();
-            if (!hasPermission('billing_record_payment')) {
-                alert("Permission denied to record payments."); return;
-            }
-
+            if (!hasPermission('billing_record_payment')) { alert("Permission denied to record payments."); return; }
             const invoiceId = document.getElementById('payment-invoice-id').value;
             const amountReceived = parseFloat(document.getElementById('payment-amount-received').value);
-
             const billingRecord = billingData.find(b => b.id === invoiceId);
-            if (!billingRecord) {
-                alert("Error: Invoice not found."); return;
-            }
-
-            if (isNaN(amountReceived) || amountReceived <= 0) {
-                alert("Please enter a valid payment amount."); return;
-            }
-
-            if (amountReceived > billingRecord.amount) {
-                alert("Payment amount cannot exceed the amount due for this simplified system."); return;
-            }
-
+            if (!billingRecord) { alert("Error: Invoice not found."); return; }
+            if (isNaN(amountReceived) || amountReceived <= 0) { alert("Please enter a valid payment amount."); return; }
+            if (amountReceived > billingRecord.amount) { alert("Payment amount cannot exceed the amount due for this simplified system."); return; }
             if (amountReceived === billingRecord.amount) {
                 billingRecord.status = 'Paid';
                 alert(`Payment of $${amountReceived.toFixed(2)} recorded for invoice ${invoiceId}. Status set to 'Paid'.`);
             } else {
                 alert(`Payment of $${amountReceived.toFixed(2)} recorded. Invoice status remains '${billingRecord.status}' as the full amount ($${billingRecord.amount.toFixed(2)}) was not paid in this transaction.`);
-                // For simplicity, not handling partial payment leading to "Paid" status here.
-                // If you wanted to track paid amounts:
-                // billingRecord.paidAmount = (billingRecord.paidAmount || 0) + amountReceived;
-                // if (billingRecord.paidAmount >= billingRecord.amount) billingRecord.status = 'Paid';
-                hideModal('payment-modal');
-                loadBillingData();
-                loadDashboardData();
-                return;
+                hideModal('payment-modal'); loadBillingData(); loadDashboardData(); return;
             }
-
-            // Update corresponding patient's billing record for consistency if it exists
-            const patientWithBilling = patients.find(p => p.billing && p.billing.some(b_item => b_item.id === invoiceId));
+            const patientWithBilling = patients.find(p => p.id === billingRecord.patientId); // Find patient by patientId on the billing record
             if (patientWithBilling) {
+                if (!patientWithBilling.billing) patientWithBilling.billing = [];
                 const patientBillingRecord = patientWithBilling.billing.find(b_item => b_item.id === invoiceId);
                 if (patientBillingRecord) {
                     patientBillingRecord.status = 'Paid';
-                    // patientBillingRecord.amount = billingRecord.amount; // ensure amount is also consistent if needed
-                    savePatientsToStorage(); // Patient data changed
+                    // patientBillingRecord.amount = billingRecord.amount; // Amount should already match
+                    // patientBillingRecord.description = billingRecord.description; // Description should already match
+                    savePatientsToStorage();
+                } else { // If invoice was in billingData but not in patient's record, add it
+                    patientWithBilling.billing.push({...billingRecord}); // Add a copy
+                    savePatientsToStorage();
                 }
             }
+            hideModal('payment-modal'); loadBillingData(); loadDashboardData();
+            if (currentView === 'patient-details' && activePatientId === billingRecord.patientId) { loadPatientDetails(activePatientId); }
+        }
 
-            hideModal('payment-modal');
+        // New: Handle Save Invoice (Add/Edit)
+        function handleSaveInvoice(event) {
+            event.preventDefault();
+            const invoiceIdToEdit = document.getElementById('invoice-id-edit').value;
+            const isEditing = !!invoiceIdToEdit;
+
+            if (isEditing && !hasPermission('billing_edit_invoice')) { alert("Permission denied to edit invoices."); return; }
+            if (!isEditing && !hasPermission('billing_add_invoice')) { alert("Permission denied to add invoices."); return; }
+
+            const patientId = document.getElementById('invoice-patient').value;
+            const date = document.getElementById('invoice-date').value;
+            const description = document.getElementById('invoice-description').value.trim();
+            const amount = parseFloat(document.getElementById('invoice-amount').value);
+            const status = document.getElementById('invoice-status').value;
+
+            if (!patientId || !date || !description || isNaN(amount) || amount <= 0) {
+                alert("Patient, Date, Description, and a valid Amount are required."); return;
+            }
+            const selectedPatient = patients.find(p => p.id === patientId);
+            if (!selectedPatient) { alert("Selected patient not found."); return; }
+
+            const invoiceData = {
+                id: isEditing ? invoiceIdToEdit : generateInvoiceId(),
+                patient: selectedPatient.name,
+                patientId: selectedPatient.id,
+                date, description, amount, status
+            };
+
+            if (isEditing) {
+                const index = billingData.findIndex(inv => inv.id === invoiceIdToEdit);
+                if (index > -1) {
+                    billingData[index] = invoiceData;
+                    alert('Invoice updated successfully.');
+                } else { alert('Error: Invoice to edit not found.'); return; }
+            } else {
+                billingData.push(invoiceData);
+                alert('New invoice added successfully.');
+            }
+
+            // Sync with patient's billing array in `patients` data
+            const patientForSync = patients.find(p => p.id === invoiceData.patientId);
+            if (patientForSync) {
+                if (!patientForSync.billing) patientForSync.billing = [];
+                const patientInvoiceIndex = patientForSync.billing.findIndex(b => b.id === invoiceData.id);
+                if (patientInvoiceIndex > -1) { // Invoice exists, update it
+                    patientForSync.billing[patientInvoiceIndex] = {...invoiceData}; // Update with a copy
+                } else { // Invoice doesn't exist, add it
+                    patientForSync.billing.push({...invoiceData}); // Add a copy
+                }
+                savePatientsToStorage(); // Patient data was modified
+            }
+
+            hideModal('invoice-modal');
             loadBillingData();
             loadDashboardData();
+            if (currentView === 'patient-details' && activePatientId === invoiceData.patientId) {
+                loadPatientDetails(activePatientId);
+            }
+        }
+
+        // New: Handle Delete Invoice
+        function handleDeleteInvoice(invoiceId) {
+            if (!hasPermission('billing_delete_invoice')) { alert("Permission denied to delete invoices."); return; }
+            const invoice = billingData.find(inv => inv.id === invoiceId);
+            if (invoice && confirm(`Are you sure you want to delete invoice ${invoiceId} for ${invoice.patient}?\nThis action cannot be undone.`)) {
+                const patientIdOfDeletedInvoice = invoice.patientId;
+                billingData = billingData.filter(inv => inv.id !== invoiceId);
+
+                // Remove from patient's billing array
+                const patientForSync = patients.find(p => p.id === patientIdOfDeletedInvoice);
+                if (patientForSync && patientForSync.billing) {
+                    patientForSync.billing = patientForSync.billing.filter(b => b.id !== invoiceId);
+                    savePatientsToStorage(); // Patient data was modified
+                }
+
+                alert(`Invoice ${invoiceId} deleted.`);
+                loadBillingData();
+                loadDashboardData();
+                 if (currentView === 'patient-details' && activePatientId === patientIdOfDeletedInvoice) {
+                    loadPatientDetails(activePatientId);
+                }
+            }
         }
 
 
@@ -2731,30 +2725,19 @@
                 patients = patients.filter(p => p.id !== patientId);
                 appointments = appointments.filter(a => a.patientId !== patientId);
                 billingData = billingData.filter(b => b.patientId !== patientId);
-                savePatientsToStorage(); // Save to localStorage
-                alert(`Patient ${patient.name} deleted.`);
-                loadPatientData();
-                loadAppointmentData();
-                loadBillingData();
-                loadDashboardData();
-                if (currentView === 'patient-details' && activePatientId === patientId) {
-                     navigateTo('patients');
-                 }
+                savePatientsToStorage(); alert(`Patient ${patient.name} deleted.`);
+                loadPatientData(); loadAppointmentData(); loadBillingData(); loadDashboardData();
+                if (currentView === 'patient-details' && activePatientId === patientId) { navigateTo('patients'); }
             }
         }
         function handleCancelAppointment(index) {
             if (!hasPermission('appointment_cancel')) { alert("Permission denied to cancel appointments."); return; }
             if (index >= 0 && index < appointments.length) {
-                const appt = appointments[index];
-                if (appt.status === 'Cancelled') { alert('Appointment is already cancelled.'); return; }
+                const appt = appointments[index]; if (appt.status === 'Cancelled') { alert('Appointment is already cancelled.'); return; }
                 if (confirm(`Are you sure you want to cancel the appointment for ${appt.patient} on ${appt.date}?`)) {
-                    appointments[index].status = 'Cancelled';
-                    alert('Appointment cancelled.');
-                    loadAppointmentData();
-                    loadDashboardData();
-                     if (currentView === 'patient-details' && activePatientId === appt.patientId) {
-                         loadPatientDetails(activePatientId);
-                     }
+                    appointments[index].status = 'Cancelled'; alert('Appointment cancelled.');
+                    loadAppointmentData(); loadDashboardData();
+                     if (currentView === 'patient-details' && activePatientId === appt.patientId) { loadPatientDetails(activePatientId); }
                 }
             } else { alert('Error: Invalid appointment index.'); }
         }
@@ -2763,88 +2746,48 @@
             if (!hasPermission('user_toggle_status')) { alert("Permission denied to change user status."); return; }
              const userToToggle = systemUsers.find(u => u.username === username);
              const currentSystemUsername = systemUsers.find(u => u.name === currentUser.name)?.username;
-             if (userToToggle && userToToggle.username === currentSystemUsername) {
-                 alert("You cannot change your own status using this button."); return;
-             }
+             if (userToToggle && userToToggle.username === currentSystemUsername) { alert("You cannot change your own status using this button."); return; }
             const userIndex = systemUsers.findIndex(u => u.username === username);
             if (userIndex > -1) {
-                const user = systemUsers[userIndex];
-                const newStatus = user.status === 'Active' ? 'Inactive' : 'Active';
+                const user = systemUsers[userIndex]; const newStatus = user.status === 'Active' ? 'Inactive' : 'Active';
                 if (confirm(`Are you sure you want to set user '${username}' to ${newStatus}?`)) {
-                    systemUsers[userIndex].status = newStatus;
-                     alert(`User '${username}' status set to ${newStatus}.`);
-                    loadUserData();
+                    systemUsers[userIndex].status = newStatus; alert(`User '${username}' status set to ${newStatus}.`); loadUserData();
                  }
             } else { alert('Error: User not found.'); }
         }
 
         function showShareModal() {
-             if (!activePatientId || !hasPermission('share_record')) {
-                alert("Cannot generate link. Ensure a patient record is selected and you have permission."); return;
-             }
-            const patient = patients.find(p => p.id === activePatientId);
-            if (!patient) { alert("Patient data not found."); return; }
+             if (!activePatientId || !hasPermission('share_record')) { alert("Cannot generate link. Ensure a patient record is selected and you have permission."); return; }
+            const patient = patients.find(p => p.id === activePatientId); if (!patient) { alert("Patient data not found."); return; }
             const simulatedToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
             const shareLink = `${window.location.origin}/view-record?token=${simulatedToken}&patient=${activePatientId}`;
-            shareLinkOutput.textContent = shareLink;
-            copyLinkButton.disabled = false;
-            copyLinkButton.innerHTML = '<i class="fas fa-copy"></i> Copy Link';
-            showModal('share-modal');
+            shareLinkOutput.textContent = shareLink; copyLinkButton.disabled = false; copyLinkButton.innerHTML = '<i class="fas fa-copy"></i> Copy Link'; showModal('share-modal');
         }
 
         function copyShareLink() {
-             if (!shareLinkOutput.textContent || shareLinkOutput.textContent === 'Generating link...' || shareLinkOutput.textContent === 'Copy failed.') {
-                 return;
-             }
+             if (!shareLinkOutput.textContent || shareLinkOutput.textContent === 'Generating link...' || shareLinkOutput.textContent === 'Copy failed.') { return; }
             navigator.clipboard.writeText(shareLinkOutput.textContent).then(() => {
                 copyLinkButton.innerHTML = '<i class="fas fa-check"></i> Copied!';
-                setTimeout(() => {
-                     if(shareModal.classList.contains('visible') && copyLinkButton.innerHTML.includes('Copied')) {
-                        copyLinkButton.innerHTML = '<i class="fas fa-copy"></i> Copy Link';
-                     }
-                 }, 2000);
+                setTimeout(() => { if(shareModal.classList.contains('visible') && copyLinkButton.innerHTML.includes('Copied')) { copyLinkButton.innerHTML = '<i class="fas fa-copy"></i> Copy Link'; } }, 2000);
             }).catch(err => {
-                console.error('Could not copy text: ', err);
-                shareLinkOutput.textContent = 'Copy failed. Please copy manually.';
-                shareLinkOutput.style.color = 'red';
-                copyLinkButton.disabled = true;
+                console.error('Could not copy text: ', err); shareLinkOutput.textContent = 'Copy failed. Please copy manually.';
+                shareLinkOutput.style.color = 'red'; copyLinkButton.disabled = true;
             });
         }
 
-        function toggleMobileSidebar() {
-            appSidebar.classList.toggle('open');
-            appHeader.classList.toggle('sidebar-open', appSidebar.classList.contains('open'));
-        }
+        function toggleMobileSidebar() { appSidebar.classList.toggle('open'); appHeader.classList.toggle('sidebar-open', appSidebar.classList.contains('open')); }
 
         function applyTheme(theme) {
-            if (theme === 'dark') {
-                document.body.classList.add('dark-mode');
-                themeToggle.checked = true;
-            } else {
-                document.body.classList.remove('dark-mode');
-                themeToggle.checked = false;
-            }
-             if (currentView === 'dashboard' && dashboardChartInstance) {
-                 setTimeout(loadDashboardData, 50);
-             }
+            if (theme === 'dark') { document.body.classList.add('dark-mode'); themeToggle.checked = true; }
+            else { document.body.classList.remove('dark-mode'); themeToggle.checked = false; }
+             if (currentView === 'dashboard' && dashboardChartInstance) { setTimeout(loadDashboardData, 50); }
         }
-
-        function handleThemeToggle() {
-            const newTheme = themeToggle.checked ? 'dark' : 'light';
-            applyTheme(newTheme);
-            localStorage.setItem('theme', newTheme);
-        }
-
+        function handleThemeToggle() { const newTheme = themeToggle.checked ? 'dark' : 'light'; applyTheme(newTheme); localStorage.setItem('theme', newTheme); }
         function applyInitialTheme() {
             const savedTheme = localStorage.getItem('theme');
             const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-            const initialTheme = savedTheme || (prefersDark ? 'dark' : 'light');
-            applyTheme(initialTheme);
-             window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
-                 if (!localStorage.getItem('theme')) {
-                     applyTheme(event.matches ? 'dark' : 'light');
-                 }
-             });
+            const initialTheme = savedTheme || (prefersDark ? 'dark' : 'light'); applyTheme(initialTheme);
+             window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => { if (!localStorage.getItem('theme')) { applyTheme(event.matches ? 'dark' : 'light'); } });
         }
 
         loginForm.addEventListener('submit', handleLogin);
@@ -2853,146 +2796,92 @@
         themeToggle.addEventListener('change', handleThemeToggle);
 
         function addNavLinkListeners() {
-            navLinks.forEach(link => {
-                link.removeEventListener('click', handleNavLinkClick);
-                link.addEventListener('click', handleNavLinkClick);
-            });
+            navLinks.forEach(link => { link.removeEventListener('click', handleNavLinkClick); link.addEventListener('click', handleNavLinkClick); });
         }
         function handleNavLinkClick(e) {
-             e.preventDefault();
-             const targetView = e.currentTarget.dataset.target;
-             if (targetView && targetView !== currentView) {
-                 navigateTo(targetView);
-             } else if (targetView === currentView) {
-                 appContent.scrollTo({ top: 0, behavior: 'smooth' });
-             }
-             if (window.innerWidth <= 768 && appSidebar.classList.contains('open')) {
-                 toggleMobileSidebar();
-             }
+             e.preventDefault(); const targetView = e.currentTarget.dataset.target;
+             if (targetView && targetView !== currentView) { navigateTo(targetView); }
+             else if (targetView === currentView) { appContent.scrollTo({ top: 0, behavior: 'smooth' }); }
+             if (window.innerWidth <= 768 && appSidebar.classList.contains('open')) { toggleMobileSidebar(); }
          }
 
         patientForm.addEventListener('submit', handleSavePatient);
         appointmentForm.addEventListener('submit', handleSaveAppointment);
         messageForm.addEventListener('submit', handleSendMessage);
         userForm.addEventListener('submit', handleSaveUser);
-        paymentForm.addEventListener('submit', handleRecordPayment); // New listener
+        paymentForm.addEventListener('submit', handleRecordPayment);
+        invoiceForm.addEventListener('submit', handleSaveInvoice); // New Listener
 
         copyLinkButton.addEventListener('click', copyShareLink);
         document.getElementById('patient-search').addEventListener('input', loadPatientData);
 
          document.body.addEventListener('click', function(event) {
-             const target = event.target;
-             const targetButton = target.closest('button');
-
-              if (appSidebar.classList.contains('open') && !appSidebar.contains(target) && !sidebarToggle.contains(target) && target !== sidebarToggle ) {
-                  toggleMobileSidebar();
-              }
-
-             if (target.matches('.modal-close-button') || target.closest('.modal-close-button')) {
-                 const modal = target.closest('.modal');
-                 if (modal) { hideModal(modal.id); }
-                 return;
-             }
-              if (target.matches('.modal.visible') && !target.querySelector('.modal-content')?.contains(target) ) {
-                  hideModal(target.id);
-                  return;
-              }
-
+             const target = event.target; const targetButton = target.closest('button');
+              if (appSidebar.classList.contains('open') && !appSidebar.contains(target) && !sidebarToggle.contains(target) && target !== sidebarToggle ) { toggleMobileSidebar(); }
+             if (target.matches('.modal-close-button') || target.closest('.modal-close-button')) { const modal = target.closest('.modal'); if (modal) { hideModal(modal.id); } return; }
+              if (target.matches('.modal.visible') && !target.querySelector('.modal-content')?.contains(target) ) { hideModal(target.id); return; }
              const widget = target.closest('.clickable-widget[data-target]');
-             if (widget) {
-                 const targetSectionId = widget.dataset.target;
-                 if (targetSectionId) { navigateTo(targetSectionId); }
-                 return;
-             }
+             if (widget) { const targetSectionId = widget.dataset.target; if (targetSectionId) { navigateTo(targetSectionId); } return; }
 
              if (targetButton) {
                  const button = targetButton;
-                 if (button.matches('.back-to-list[data-target]')) {
-                     navigateTo(button.dataset.target); return;
-                 }
-                 if (button.matches('.btn-view[data-patient-id]')) {
-                     navigateTo('patient-details', { patientId: button.dataset.patientId }); return;
-                 }
+                 if (button.matches('.back-to-list[data-target]')) { navigateTo(button.dataset.target); return; }
+                 if (button.matches('.btn-view[data-patient-id]')) { navigateTo('patient-details', { patientId: button.dataset.patientId }); return; }
                  if (button.matches('.btn-edit[data-patient-id]')) {
                      const patient = patients.find(p => p.id === button.dataset.patientId);
                      if(patient && hasPermission('patient_edit')) showModal('patient-modal', 'edit', patient);
-                     else if (!hasPermission('patient_edit')) alert("Permission denied.");
-                     return;
+                     else if (!hasPermission('patient_edit')) alert("Permission denied."); return;
                  }
-                 if (button.matches('.btn-delete[data-patient-id]')) {
-                     handleDeletePatient(button.dataset.patientId); return;
-                 }
-                 if (button.matches('#add-patient-button')) {
-                      if(hasPermission('patient_add')) showModal('patient-modal', 'add'); else alert('Permission Denied'); return;
-                  }
-                 if (button.matches('.btn-edit[data-appointment-index]')) {
-                     if(hasPermission('appointment_edit')) showModal('appointment-modal', 'edit', button.dataset.appointmentIndex); else alert('Permission Denied'); return;
-                 }
-                 if (button.matches('.btn-cancel[data-appointment-index]')) {
-                     handleCancelAppointment(parseInt(button.dataset.appointmentIndex, 10)); return;
-                 }
-                 if (button.matches('#add-appointment-button')) {
-                      if(hasPermission('appointment_add')) showModal('appointment-modal', 'add'); else alert('Permission Denied'); return;
-                  }
-                  if (button.matches('#compose-message-button')) {
-                      if(hasPermission('message_compose')) showModal('message-modal', 'add'); else alert('Permission Denied'); return;
-                  }
-                 if (button.matches('.btn-edit[data-user-username]')) {
-                     if(hasPermission('user_edit')) showModal('user-modal', 'edit', button.dataset.userUsername); else alert('Permission Denied'); return;
-                 }
-                 if (button.matches('.btn-delete[data-user-username]') || button.matches('.btn-activate[data-user-username]')) {
-                     handleToggleUserStatus(button.dataset.userUsername); return;
-                 }
-                 if (button.matches('#add-user-button')) {
-                      if(hasPermission('user_add')) showModal('user-modal', 'add'); else alert('Permission Denied'); return;
-                  }
+                 if (button.matches('.btn-delete[data-patient-id]')) { handleDeletePatient(button.dataset.patientId); return; }
+                 if (button.matches('#add-patient-button')) { if(hasPermission('patient_add')) showModal('patient-modal', 'add'); else alert('Permission Denied'); return; }
+                 if (button.matches('.btn-edit[data-appointment-index]')) { if(hasPermission('appointment_edit')) showModal('appointment-modal', 'edit', button.dataset.appointmentIndex); else alert('Permission Denied'); return; }
+                 if (button.matches('.btn-cancel[data-appointment-index]')) { handleCancelAppointment(parseInt(button.dataset.appointmentIndex, 10)); return; }
+                 if (button.matches('#add-appointment-button')) { if(hasPermission('appointment_add')) showModal('appointment-modal', 'add'); else alert('Permission Denied'); return; }
+                 if (button.matches('#compose-message-button')) { if(hasPermission('message_compose')) showModal('message-modal', 'add'); else alert('Permission Denied'); return; }
+                 if (button.matches('.btn-edit[data-user-username]')) { if(hasPermission('user_edit')) showModal('user-modal', 'edit', button.dataset.userUsername); else alert('Permission Denied'); return; }
+                 if (button.matches('.btn-delete[data-user-username]') || button.matches('.btn-activate[data-user-username]')) { handleToggleUserStatus(button.dataset.userUsername); return; }
+                 if (button.matches('#add-user-button')) { if(hasPermission('user_add')) showModal('user-modal', 'add'); else alert('Permission Denied'); return; }
                  if (button.matches('.btn-print-tab[data-print-target]')) {
                      if (!hasPermission('print_record')) { alert("Permission denied to print records."); return; }
-                     const targetTabId = button.dataset.printTarget;
-                     const targetTabContent = document.getElementById(targetTabId);
+                     const targetTabId = button.dataset.printTarget; const targetTabContent = document.getElementById(targetTabId);
                      if (targetTabContent) {
-                         document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('printable-section'));
-                         targetTabContent.classList.add('printable-section');
-                         window.print();
-                         setTimeout(() => targetTabContent.classList.remove('printable-section'), 500);
-                     } else { console.error("Print target element not found:", targetTabId); }
-                     return;
+                         document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('printable-section')); targetTabContent.classList.add('printable-section');
+                         window.print(); setTimeout(() => targetTabContent.classList.remove('printable-section'), 500);
+                     } else { console.error("Print target element not found:", targetTabId); } return;
                  }
-                 // New: Billing Record Payment Button
-                 if (button.matches('.btn-record-payment[data-invoice-id]')) {
-                    const invoiceId = button.dataset.invoiceId;
-                    const patientName = button.dataset.patientName;
-                    const amountDue = button.dataset.amountDue;
-                    if (hasPermission('billing_record_payment')) {
-                        showModal('payment-modal', 'record', { invoiceId, patientName, amountDue });
-                    } else {
-                        alert("Permission denied to record payments.");
-                    }
-                    return;
+                 if (button.matches('.btn-record-payment[data-invoice-id]')) { // For billing table record payment
+                    const invoiceId = button.dataset.invoiceId; const patientName = button.dataset.patientName; const amountDue = button.dataset.amountDue;
+                    if (hasPermission('billing_record_payment')) { showModal('payment-modal', 'record', { invoiceId, patientName, amountDue }); }
+                    else { alert("Permission denied to record payments."); } return;
+                }
+                if (button.matches('#add-invoice-button')) { // New Add Invoice Button
+                    if (hasPermission('billing_add_invoice')) showModal('invoice-modal', 'add');
+                    else alert('Permission Denied'); return;
+                }
+                if (button.matches('.btn-edit[data-invoice-id]')) { // New Edit Invoice Button in billing table
+                    const invoice = billingData.find(inv => inv.id === button.dataset.invoiceId);
+                    if (invoice && hasPermission('billing_edit_invoice')) showModal('invoice-modal', 'edit', invoice);
+                    else if (!hasPermission('billing_edit_invoice')) alert("Permission denied."); return;
+                }
+                if (button.matches('.btn-delete[data-invoice-id]')) { // New Delete Invoice Button in billing table
+                    handleDeleteInvoice(button.dataset.invoiceId); return;
                 }
              }
              const messageItem = target.closest('.message-item[data-message-id]');
              if (messageItem && !targetButton) {
                   if(hasPermission('message_view')) showMessageDetail(parseInt(messageItem.dataset.messageId, 10));
-                  else alert("Permission denied to view messages.");
-                  return;
+                  else alert("Permission denied to view messages."); return;
               }
          });
 
          document.addEventListener('keydown', function(event) {
              if (event.key === "Escape") {
                  const visibleModals = document.querySelectorAll('.modal.visible');
-                 if (visibleModals.length > 0) {
-                     hideModal(visibleModals[visibleModals.length - 1].id);
-                 } else if (appSidebar.classList.contains('open')) {
-                     toggleMobileSidebar();
-                 }
+                 if (visibleModals.length > 0) { hideModal(visibleModals[visibleModals.length - 1].id); }
+                 else if (appSidebar.classList.contains('open')) { toggleMobileSidebar(); }
              }
          });
-
         applyInitialTheme();
-
     </script>
-
 </body>
 </html>
